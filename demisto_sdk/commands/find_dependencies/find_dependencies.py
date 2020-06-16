@@ -288,6 +288,9 @@ class PackDependencies:
         """
         dependencies_packs = set()
 
+        if playbook_dependencies:
+            print(str(playbook_dependencies))
+
         for playbook in pack_playbooks:
             playbook_data = next(iter(playbook.values()))
             # searching for packs of implementing scripts
