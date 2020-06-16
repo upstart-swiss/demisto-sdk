@@ -299,7 +299,7 @@ class PackDependencies:
                 if curr_deps:
                     for pack, is_mandatory in pack_dependencies_data:
                         if pack == playbook_data.get('pack'):
-                            print('wtf')
+                            continue
                         if pack not in curr_deps and pack not in CORE_PACKS_LIST:
                             print(f'Found bad dependency {pack} in test playbook {playbook_data.get("name")}!')
                 dependencies_packs.update(pack_dependencies_data)
