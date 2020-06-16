@@ -302,7 +302,7 @@ class PackDependencies:
                         if pack == playbook_data.get('pack'):
                             continue
                         if pack not in curr_deps and pack not in CORE_PACKS_LIST:
-                            print(f'Found bad dependency {pack} in test playbook {playbook_data.get("name")}!')
+                            print(f'Found bad dependency {pack} for pack {playbook_data.get("pack")} in test playbook {playbook_data.get("name")}!')
                 dependencies_packs.update(pack_dependencies_data)
 
             implementing_commands_and_integrations = playbook_data.get('command_to_integration', {})
