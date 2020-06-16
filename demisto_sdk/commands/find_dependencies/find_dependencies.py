@@ -9,6 +9,35 @@ from demisto_sdk.commands.common import constants
 from demisto_sdk.commands.common.tools import print_error
 from demisto_sdk.commands.create_id_set.create_id_set import IDSetCreator
 
+CORE_PACKS_LIST = ["Base",
+                   "rasterize",
+                   "DemistoRESTAPI",
+                   "DemistoLocking",
+                   "ImageOCR",
+                   "WhereIsTheEgg",
+                   "FeedAutofocus",
+                   "AutoFocus",
+                   "UrlScan",
+                   "Active_Directory_Query",
+                   "FeedTAXII",
+                   "VirusTotal",
+                   "Whois",
+                   "Phishing",
+                   "CommonScripts",
+                   "CommonPlaybooks",
+                   "CommonTypes",
+                   "CommonDashboards",
+                   "CommonReports",
+                   "CommonWidgets",
+                   "TIM_Processing",
+                   "TIM_SIEM",
+                   "HelloWorld",
+                   "ExportIndicators",
+                   "Malware",
+                   "DefaultPlaybook",
+                   "CalculateTimeDifference"
+                   ]  # cores packs list
+
 
 def parse_for_pack_metadata(dependency_graph, graph_root):
     """
@@ -245,7 +274,7 @@ class PackDependencies:
         return dependencies_packs
 
     @staticmethod
-    def _collect_playbooks_dependencies(pack_playbooks, id_set):
+    def _collect_playbooks_dependencies(pack_playbooks, id_set, playbook_dependencies=None):
         """
         Collects playbook pack dependencies.
 
@@ -267,6 +296,10 @@ class PackDependencies:
                                                                                      id_set['scripts'])
             if packs_found_from_scripts:  # found packs of implementing scripts
                 pack_dependencies_data = PackDependencies._label_as_mandatory(packs_found_from_scripts)
+                if playbook_dependencies:
+                    for pack, is_mandatory in pack_dependencies_data:
+                        if pack not in playbook_dependencies and pack not in CORE_PACKS_LIST:
+                            print(f'Found bad dependency {pack} in test playbook {playbook_data.get("name")}!')
                 dependencies_packs.update(pack_dependencies_data)
 
             implementing_commands_and_integrations = playbook_data.get('command_to_integration', {})
@@ -330,7 +363,8 @@ class PackDependencies:
         )
         scripts_dependencies = PackDependencies._collect_scripts_dependencies(pack_scripts, id_set)
         playbooks_dependencies = PackDependencies._collect_playbooks_dependencies(pack_playbooks, id_set)
-        test_playbooks_dependencies = PackDependencies._collect_playbooks_dependencies(pack_test_playbooks, id_set)
+        playbooks_deps = [p[0] for p in playbooks_dependencies if p[1]]
+        test_playbooks_dependencies = PackDependencies._collect_playbooks_dependencies(pack_test_playbooks, id_set, playbooks_deps)
         pack_dependencies = scripts_dependencies | playbooks_dependencies | test_playbooks_dependencies
         # todo check if need to collect dependencies from other content items
 
