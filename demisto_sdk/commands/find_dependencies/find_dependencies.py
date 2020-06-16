@@ -298,6 +298,8 @@ class PackDependencies:
                 pack_dependencies_data = PackDependencies._label_as_mandatory(packs_found_from_scripts)
                 if playbook_dependencies:
                     for pack, is_mandatory in pack_dependencies_data:
+                        if pack == playbook_data.get('pack'):
+                            continue
                         if pack not in playbook_dependencies and pack not in CORE_PACKS_LIST:
                             print(f'Found bad dependency {pack} in test playbook {playbook_data.get("name")}!')
                 dependencies_packs.update(pack_dependencies_data)
