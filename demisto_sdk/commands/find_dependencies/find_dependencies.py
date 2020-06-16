@@ -292,7 +292,7 @@ class PackDependencies:
         return dependencies_packs
 
     @staticmethod
-    def _collect_pack_items(pack_id, id_set):
+    def _collect_pack_items(pack_id, id_set, include_test_data):
         """
         Collects script and playbook content items inside specific pack.
 
@@ -305,37 +305,46 @@ class PackDependencies:
         """
         pack_scripts = PackDependencies._search_for_pack_items(pack_id, id_set['scripts'])
         pack_playbooks = PackDependencies._search_for_pack_items(pack_id, id_set['playbooks'])
+        if include_test_data:
+            pack_test_playbooks = PackDependencies._search_for_pack_items(pack_id, id_set['TestPlaybooks'])
+        else:
+            pack_test_playbooks = []
 
-        return pack_scripts, pack_playbooks
+        return pack_scripts, pack_playbooks, pack_test_playbooks
 
     @staticmethod
-    def _find_pack_dependencies(pack_id, id_set):
+    def _find_pack_dependencies(pack_id, id_set, include_test_data):
         """
         Searches for specific pack dependencies.
 
         Args:
             pack_id (str): pack id, currently pack folder name is in use.
             id_set (dict): id set json.
+            include_test_data (bool): Whether or not to include test data in the calculations.
 
         Returns:
             set: dependencies data that includes pack id and whether is mandatory or not.
         """
-        pack_scripts, pack_playbooks = PackDependencies._collect_pack_items(pack_id, id_set)
+        pack_scripts, pack_playbooks, pack_test_playbooks = PackDependencies._collect_pack_items(
+            pack_id, id_set, include_test_data
+        )
         scripts_dependencies = PackDependencies._collect_scripts_dependencies(pack_scripts, id_set)
         playbooks_dependencies = PackDependencies._collect_playbooks_dependencies(pack_playbooks, id_set)
-        pack_dependencies = scripts_dependencies | playbooks_dependencies
+        test_playbooks_dependencies = PackDependencies._collect_playbooks_dependencies(pack_test_playbooks, id_set)
+        pack_dependencies = scripts_dependencies | playbooks_dependencies | test_playbooks_dependencies
         # todo check if need to collect dependencies from other content items
 
         return pack_dependencies
 
     @staticmethod
-    def build_dependency_graph(pack_id, id_set):
+    def build_dependency_graph(pack_id, id_set, include_test_data=False):
         """
         Builds all level of dependencies and returns dependency graph.
 
         Args:
             pack_id (str): pack id, currently pack folder name is in use.
             id_set (dict): id set json.
+            include_test_data (bool): Whether or not to include test data in the calculations.
 
         Returns:
             DiGraph: all level dependencies of given pack.
@@ -349,7 +358,7 @@ class PackDependencies:
             leaf_nodes = [n for n in graph.nodes() if graph.out_degree(n) == 0]
 
             for leaf in leaf_nodes:
-                leaf_dependencies = PackDependencies._find_pack_dependencies(leaf, id_set)
+                leaf_dependencies = PackDependencies._find_pack_dependencies(leaf, id_set, include_test_data)
 
                 if leaf_dependencies:
                     for dependency_name, is_mandatory in leaf_dependencies:
@@ -362,13 +371,14 @@ class PackDependencies:
         return graph
 
     @staticmethod
-    def find_dependencies(pack_name, id_set_path=None):
+    def find_dependencies(pack_name, id_set_path=None, include_test_data=False):
         """
         Main function for dependencies search and pack metadata update.
 
         Args:
             pack_name (str): pack id, currently pack folder name is in use.
             id_set_path (str): id set json.
+            include_test_data (bool): Whether or not to include test data in the calculations.
 
         """
         if not id_set_path:
@@ -377,7 +387,8 @@ class PackDependencies:
             with open(id_set_path, 'r') as id_set_file:
                 id_set = json.load(id_set_file)
 
-        dependency_graph = PackDependencies.build_dependency_graph(pack_id=pack_name, id_set=id_set)
+        dependency_graph = PackDependencies.build_dependency_graph(pack_id=pack_name, id_set=id_set,
+                                                                   include_test_data=include_test_data)
         first_level_dependencies, _ = parse_for_pack_metadata(dependency_graph, pack_name)
         update_pack_metadata_with_dependencies(pack_name, first_level_dependencies)
         # print the found pack dependency results

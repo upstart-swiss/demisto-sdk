@@ -821,10 +821,14 @@ def update_pack_releasenotes(**kwargs):
     "-p", "--pack_folder_name", help="Pack folder name to find dependencies.", required=True)
 @click.option(
     "-i", "--id_set_path", help="Path to id set json file.", required=False)
+@click.option(
+    "-t", "--include_test_data", help="Whether or not to include test data in the calculations.", required=False)
 def find_dependencies_command(**kwargs):
     pack_name = kwargs.get('pack_folder_name', '')
     id_set_path = kwargs.get('id_set_path')
-    PackDependencies.find_dependencies(pack_name=pack_name, id_set_path=id_set_path)
+    include_test_data = kwargs.get('include_test_data')
+    PackDependencies.find_dependencies(pack_name=pack_name, id_set_path=id_set_path,
+                                       include_test_data=include_test_data)
 
 
 @main.resultcallback()
