@@ -35,7 +35,8 @@ CORE_PACKS_LIST = ["Base",
                    "ExportIndicators",
                    "Malware",
                    "DefaultPlaybook",
-                   "CalculateTimeDifference"
+                   "CalculateTimeDifference",
+                   "DeveloperTools"
                    ]  # cores packs list
 
 
