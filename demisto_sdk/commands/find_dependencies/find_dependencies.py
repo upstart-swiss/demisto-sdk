@@ -288,9 +288,6 @@ class PackDependencies:
         """
         dependencies_packs = set()
 
-        if playbook_dependencies:
-            print(str(playbook_dependencies))
-
         for playbook in pack_playbooks:
             playbook_data = next(iter(playbook.values()))
             # searching for packs of implementing scripts
@@ -368,7 +365,7 @@ class PackDependencies:
         )
         scripts_dependencies = PackDependencies._collect_scripts_dependencies(pack_scripts, id_set)
         playbooks_dependencies = PackDependencies._collect_playbooks_dependencies(pack_playbooks, id_set)
-        playbooks_deps = [p[0] for p in playbooks_dependencies if p[1]]
+        playbooks_deps = set([p[0] for p in playbooks_dependencies if p[1] == True])
         test_playbooks_dependencies = PackDependencies._collect_playbooks_dependencies(pack_test_playbooks, id_set, playbooks_deps)
         pack_dependencies = scripts_dependencies | playbooks_dependencies | test_playbooks_dependencies
         # todo check if need to collect dependencies from other content items
