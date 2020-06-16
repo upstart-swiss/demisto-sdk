@@ -274,7 +274,7 @@ class PackDependencies:
         return dependencies_packs
 
     @staticmethod
-    def _collect_playbooks_dependencies(pack_playbooks, id_set, playbook_dependencies=None):
+    def _collect_playbooks_dependencies(pack_playbooks, id_set, curr_deps=None):
         """
         Collects playbook pack dependencies.
 
@@ -296,11 +296,11 @@ class PackDependencies:
                                                                                      id_set['scripts'])
             if packs_found_from_scripts:  # found packs of implementing scripts
                 pack_dependencies_data = PackDependencies._label_as_mandatory(packs_found_from_scripts)
-                if playbook_dependencies:
+                if curr_deps:
                     for pack, is_mandatory in pack_dependencies_data:
                         if pack == playbook_data.get('pack'):
-                            continue
-                        if pack not in playbook_dependencies and pack not in CORE_PACKS_LIST:
+                            print('wtf')
+                        if pack not in curr_deps and pack not in CORE_PACKS_LIST:
                             print(f'Found bad dependency {pack} in test playbook {playbook_data.get("name")}!')
                 dependencies_packs.update(pack_dependencies_data)
 
@@ -365,8 +365,8 @@ class PackDependencies:
         )
         scripts_dependencies = PackDependencies._collect_scripts_dependencies(pack_scripts, id_set)
         playbooks_dependencies = PackDependencies._collect_playbooks_dependencies(pack_playbooks, id_set)
-        playbooks_deps = set([p[0] for p in playbooks_dependencies if p[1] == True])
-        test_playbooks_dependencies = PackDependencies._collect_playbooks_dependencies(pack_test_playbooks, id_set, playbooks_deps)
+        curr_deps = set([p[0] for p in playbooks_dependencies if p[1] == True]) | set([p[0] for p in scripts_dependencies if p[1] == True])
+        test_playbooks_dependencies = PackDependencies._collect_playbooks_dependencies(pack_test_playbooks, id_set, curr_deps)
         pack_dependencies = scripts_dependencies | playbooks_dependencies | test_playbooks_dependencies
         # todo check if need to collect dependencies from other content items
 
