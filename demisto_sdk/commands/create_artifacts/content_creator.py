@@ -568,12 +568,15 @@ class ContentCreator:
                                     print_warning('{} Only unified yml found in the package directory'.format(msg))
                                 continue
                             unifier = Unifier(package_dir, dir_name, dest_dir)
-
-                            if parse_version(unifier.yml_data.get('toversion', '99.99.99')) >= parse_version('6.0.0'):
-                                new_file_paths = unifier.merge_script_package_to_yml(
-                                    file_name_suffix=self.file_name_suffix)
-                                for new_file_path in new_file_paths:
+                            new_file_paths = unifier.merge_script_package_to_yml(
+                                file_name_suffix=self.file_name_suffix)
+                            for new_file_path in new_file_paths:
+                                if parse_version(get_yaml(new_file_path).get('toversion',
+                                                                             '99.99.99')) >= parse_version('6.0.0'):
                                     self.add_from_version_to_yml(new_file_path)
+
+                                else:
+                                    os.remove(new_file_path)
 
                     non_split_yml_files = [f for f in os.listdir(content_dir)
                                            if os.path.isfile(os.path.join(content_dir, f)) and
@@ -582,9 +585,11 @@ class ContentCreator:
 
                     if non_split_yml_files:  # old format non split yml files
                         for yml_file in non_split_yml_files:
-                            new_file_path = self.add_suffix_to_file_path(os.path.join(dest_dir, yml_file))
-                            shutil.copyfile(os.path.join(content_dir, yml_file), new_file_path)
-                            self.add_from_version_to_yml(new_file_path)
+                            existing_file_path = os.path.join(content_dir, yml_file)
+                            if parse_version(get_yaml(existing_file_path).get('toversion', '99.99.99')) >= parse_version('6.0.0'):
+                                new_file_path = self.add_suffix_to_file_path(os.path.join(dest_dir, yml_file))
+                                shutil.copyfile(existing_file_path, new_file_path)
+                                self.add_from_version_to_yml(new_file_path)
 
                 else:
                     self.copy_dir_files(content_dir, dest_dir, is_legacy_bundle=False)
