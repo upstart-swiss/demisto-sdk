@@ -17,6 +17,7 @@ from demisto_sdk.commands.common.tools import (find_type,
                                                get_pack_name,
                                                pack_name_to_path, print_error,
                                                print_warning)
+from demisto_sdk.commands.convert_layout.layoutconverter import LayoutConverter
 from demisto_sdk.commands.create_artifacts.content_creator import \
     ContentCreator
 from demisto_sdk.commands.create_id_set.create_id_set import IDSetCreator
@@ -507,6 +508,21 @@ def upload(**kwargs):
 def download(**kwargs):
     downloader: Downloader = Downloader(**kwargs)
     return downloader.download()
+
+# ====================== convert-layout ====================== #
+
+
+@main.command(name="convert-layout",
+              short_help="Converts a local layout in content repository from old format to 6.0 format")
+@click.help_option(
+    '-h', '--help'
+)
+@click.option(
+    "-i", "--input", help="Custom content file name to be downloaded. Can be provided multiple times",
+    required=False, multiple=True)
+def convert(**kwargs):
+    layout_converter: LayoutConverter = LayoutConverter(**kwargs)
+    return layout_converter.convert()
 
 
 # ====================== run ====================== #

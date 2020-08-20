@@ -833,8 +833,8 @@ def find_type(path: str = '', _dict=None, file_type: Optional[str] = None, ignor
         if 'mapping' in _dict:
             return FileType.MAPPER
 
-        if 'layout' in _dict or 'kind' in _dict:
-            if 'kind' in _dict or 'typeId' in _dict:
+        if 'layout' in _dict or 'kind' in _dict or os.path.basename(path).startswith('layoutscontainer-'):
+            if 'kind' in _dict or 'typeId' in _dict or os.path.basename(path).startswith('layoutscontainer-'):
                 return FileType.LAYOUT
 
             return FileType.DASHBOARD
