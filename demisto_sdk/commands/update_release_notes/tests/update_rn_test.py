@@ -560,7 +560,8 @@ class TestRNUpdateUnit:
     diff_package = [
         ("1.0.1", "1.0.2", True),
         ("1.0.5", "1.0.4", False),
-        ("1.0.5", "1.0.5", True)
+        ("1.0.5", "1.0.5", True),
+        ("1.0.0", '99.99.99', True)
     ]
 
     @pytest.mark.parametrize('pack_current_version, git_current_version, expected_result', diff_package)
