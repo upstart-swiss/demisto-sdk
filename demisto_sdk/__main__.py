@@ -515,8 +515,11 @@ def download(**kwargs):
 @main.command(name="convert-layout",
               short_help="Converts a local layout in content repository from old format to 6.0 format")
 @click.help_option(
-    '-h', '--help'
-)
+    '-h', '--help')
+@click.option(
+    "-stf", "--six-to-five", help="Whether to convert new layouts to old layouts or not", is_flag=True)
+@click.option(
+    "-fts", "--five-to-six", help="Whether to convert old layouts to new layouts or not", is_flag=True)
 @click.option(
     "-i", "--input", help="Custom content file name to be downloaded. Can be provided multiple times",
     required=False, multiple=True)

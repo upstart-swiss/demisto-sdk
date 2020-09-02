@@ -82,8 +82,8 @@ def get_yml_paths_in_dir(project_dir: str, error_msg: str = '') -> Tuple[list, s
 
 
 # print srt in the given color
-def print_color(obj, color):
-    print(u'{}{}{}'.format(color, obj, LOG_COLORS.NATIVE))
+def print_color(obj, color, end='\n'):
+    print(u'{}{}{}'.format(color, obj, LOG_COLORS.NATIVE), end=end)
 
 
 def get_files_in_dir(project_dir: str, file_endings: list, recursive: bool = True) -> list:
