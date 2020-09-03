@@ -29,9 +29,10 @@ This command is used to convert old versioned layouts (Demisto version <6.0) to 
 
 ### Examples
 ```
-demisto-sdk convert-layout -i Packs/TestPack1 -i Packs/TestPack2 -stf -fts
+demisto-sdk convert-layout -i Packs/TestPack1 -i Packs/TestPack2
 ```
 This will convert all layouts (both old and new versions) in "TestPack1" & "TestPack2" packs to their opposite version.
+If non of the flags is provided, the default behaviour is that they are both turned on, i.e. converting in both directions.
 <br/><br/>
 ```
 demisto-sdk convert-layout -i Packs/TestPack1 -stf

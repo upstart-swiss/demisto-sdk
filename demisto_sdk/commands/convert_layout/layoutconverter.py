@@ -58,10 +58,9 @@ class LayoutConverter:
             if self.old_to_new:
                 self.support_new_format(input_pack, pack_layouts_tempdir_path, pack_layouts_object)
             self.replace_layouts_dir(pack_layouts_tempdir_path, pack_layouts_path)
-            self.log_layouts_not_converted(input_pack)
             if input_pack == self.input_packs[-1]:
                 last = False
-            self.print_valid_pack(input_pack, pack_layouts_object)
+            self.log_layouts_not_converted(input_pack)
             self.log_pack_name(input_pack, newline_end=last)
         self.remove_traces()
         return 0
@@ -235,7 +234,7 @@ class LayoutConverter:
         data['kind'] = key
         data['layout'] = self.build_section_layout(key, value, layout_id, raw_type_id)
         data['fromVersion'] = '4.1.0'
-        data['toVersion'] = '5.0.0'
+        data['toVersion'] = '5.9.9'
         data['typeId'] = raw_type_id
         data['version'] = -1
 
@@ -294,7 +293,6 @@ class LayoutConverter:
             else:
                 self.update_new_layout(input_pack_path, layout_object, layout_id, old_layouts)
             self.update_old_layouts(old_layouts)
-
 
     @staticmethod
     def replace_layouts_dir(pack_layouts_tempdir_path, pack_layouts_path):
@@ -451,12 +449,11 @@ class LayoutConverter:
         @TODO:
         :return: @TODO:
         """
-        verification_answer: bool = any((self.new_to_old, self.old_to_new))
-        err_msg: str = "Error: Missing option '-stf' / '--six-to-five' OR '-fts' / '--five-to-six'. " \
-                       "Choose at least one."
-        if not verification_answer:
-            print_color(err_msg, LOG_COLORS.RED)
-        return verification_answer
+
+        if not any((self.new_to_old, self.old_to_new)):
+            self.old_to_new = True
+            self.new_to_old = True
+        return True
 
     def log_layouts_not_converted(self, pack: str):
         """
@@ -464,9 +461,10 @@ class LayoutConverter:
         :return: @TODO:
         """
         if self.layouts_not_converted[pack]:
-            print_color("\nFailed to convert the following layouts:\n", LOG_COLORS.RED)
+            print_color("Failed to convert the following layouts:\n", LOG_COLORS.RED)
             print_color(tabulate(self.layouts_not_converted[pack], headers=['PACK', 'LAYOUT', 'VERSION', 'REASON']),
                         LOG_COLORS.RED)
+            print()
 
     def log_converted_layout(self, layout_id: str, from_version: str, to_version: str, num_new_layouts: int,
                              total_layouts: int, num_dynamic_fields: int, num_bounded_its: int, connected_its: list,
@@ -523,16 +521,3 @@ class LayoutConverter:
         print_color(f'{separator} {os.path.basename(input_pack_path)} Pack {separator}\n', LOG_COLORS.NATIVE)
         if newline_end:
             print()
-
-    def print_valid_pack(self, input_pack: str, pack_layouts_object: dict):
-        """
-        @TODO:
-        :param input_pack: @TODO:
-        :param pack_layouts_object: @TODO:
-        :return: @TODO:
-        """
-        if pack_layouts_object and not self.printed_packs[input_pack]['old']:
-            print_color('* All existing new layouts have corresponding old layouts.', LOG_COLORS.NATIVE)
-        if pack_layouts_object and not self.printed_packs[input_pack]['new']:
-            print_color('* All existing old layouts in the pack have corresponding new layouts.', LOG_COLORS.NATIVE)
-        print()
