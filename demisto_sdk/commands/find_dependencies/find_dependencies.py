@@ -1080,9 +1080,11 @@ class PackDependencies:
         return graph
 
     @staticmethod
-    def find_dependencies(pack_name: str, id_set_path: str = '', exclude_ignored_dependencies: bool = True,
-                          update_pack_metadata: bool = True,
-                          silent_mode: bool = False, debug_file_path: str = '') -> dict:
+    def find_dependencies(
+            pack_name: str, id_set_path: str = '', exclude_ignored_dependencies: bool = True,
+            update_pack_metadata: bool = True,
+            silent_mode: bool = False, debug_file_path: str = ''
+    ) -> dict:
         """
         Main function for dependencies search and pack metadata update.
 
