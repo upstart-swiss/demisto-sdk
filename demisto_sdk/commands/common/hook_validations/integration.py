@@ -1,3 +1,4 @@
+import click
 import yaml
 from demisto_sdk.commands.common.constants import (BANG_COMMAND_NAMES,
                                                    DBOT_SCORES_DICT,
@@ -46,7 +47,7 @@ class IntegrationValidator(ContentEntityValidator):
         """Check whether the Integration is backward compatible or not, update the _is_valid field to determine that"""
         if not self.old_file:
             return True
-
+        click.secho(f'Validating backwards compatibility for {self.file_path}')
         answers = [
             self.is_changed_context_path(),
             self.is_removed_integration_parameters(),
@@ -481,13 +482,20 @@ class IntegrationValidator(ContentEntityValidator):
         current_command_to_args = self._get_command_to_args(self.current_file)
         old_command_to_args = self._get_command_to_args(self.old_file)
 
+        bc_break_detected = False
+        invalid_commands = []
+
         for command, args_dict in old_command_to_args.items():
             if command not in current_command_to_args.keys() or \
                     not self.is_subset_dictionary(current_command_to_args[command], args_dict):
-                error_message, error_code = Errors.breaking_backwards_command_arg_changed(command)
-                if self.handle_error(error_message, error_code, file_path=self.file_path):
-                    self.is_valid = False
-                    return True
+                invalid_commands.append(command)
+                bc_break_detected = True
+
+        if bc_break_detected:
+            error_message, error_code = Errors.breaking_backwards_command_arg_changed(str(invalid_commands))
+            if self.handle_error(error_message, error_code, file_path=self.file_path):
+                self.is_valid = False
+                return True
 
         return False
 
