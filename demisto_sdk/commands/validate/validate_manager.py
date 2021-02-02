@@ -1,9 +1,12 @@
 import os
 import re
+from concurrent.futures._base import Future, as_completed
 from configparser import ConfigParser, MissingSectionHeaderError
-from typing import Optional
+from typing import Callable, List, Optional
 
 import click
+from pebble import ProcessPool
+
 from demisto_sdk.commands.common import tools
 from demisto_sdk.commands.common.configuration import Configuration
 from demisto_sdk.commands.common.constants import (
@@ -208,6 +211,23 @@ class ValidateManager:
         Returns:
             bool. true if all files are valid, false otherwise.
         """
+
+        def wait_futures_complete(futures_list: List[Future], done_fn: Callable):
+            """Wait for all futures to complete, Raise exception if occurred.
+
+            Args:
+                futures_list: futures to wait for.
+                done_fn: Function to run on result.
+            Raises:
+                Exception: Raise caught exception for further cleanups.
+            """
+            for future in as_completed(futures_list):
+                try:
+                    result = future.result()
+                    done_fn(result)
+                except Exception as e:
+                    click.secho(f'An error occurred while tried to collect result, Error: {e}', fg="bright_red")
+                    raise
         click.secho('\n================= Validating all files =================', fg="bright_cyan")
         all_packs_valid = set()
 
@@ -217,12 +237,15 @@ class ValidateManager:
 
         num_of_packs = len(os.listdir(PACKS_DIR))
         count = 1
-
-        for pack_name in os.listdir(PACKS_DIR):
-            self.completion_percentage = format((count / num_of_packs) * 100, ".2f")  # type: ignore
-            pack_path = os.path.join(PACKS_DIR, pack_name)
-            all_packs_valid.add(self.run_validations_on_pack(pack_path))
-            count += 1
+        with ProcessPool(max_workers=4) as executor:
+            futures = []
+            for pack_name in os.listdir(PACKS_DIR):
+                self.completion_percentage = format((count / num_of_packs) * 100, ".2f")  # type: ignore
+                pack_path = os.path.join(PACKS_DIR, pack_name)
+                futures.append(
+                    executor.schedule(self.run_validations_on_pack, args=(pack_path,)))
+                count += 1
+            wait_futures_complete(futures_list=futures, done_fn=lambda x: all_packs_valid.add(x))
 
         return all(all_packs_valid)
 
@@ -353,8 +376,8 @@ class ValidateManager:
                 return self.validate_release_notes(file_path, added_files, modified_files, pack_error_ignore_list,
                                                    is_modified)
 
-        elif file_type == FileType.README:
-            return self.validate_readme(file_path, pack_error_ignore_list)
+        # elif file_type == FileType.README:
+        #     return self.validate_readme(file_path, pack_error_ignore_list)
 
         elif file_type == FileType.REPORT:
             return self.validate_report(structure_validator, pack_error_ignore_list)
