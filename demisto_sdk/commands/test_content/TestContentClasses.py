@@ -404,7 +404,7 @@ class BuildContext:
         self.conf_unmockable_tests = self._get_unmockable_tests_from_conf()
         self.unmockable_test_ids: Set[str] = set()
         self.mockable_tests_to_run, self.unmockable_tests_to_run = self._get_tests_to_run()
-        self.slack_user_id = self._retrieve_slack_user_id()
+        self.slack_user_id = 'WHBGWFYS1'
         self.all_integrations_configurations = self._get_all_integration_config(self.instances_ips)
 
     def _get_all_integration_config(self, instances_ips: dict) -> Optional[list]:
@@ -1377,16 +1377,29 @@ class TestContext:
         )
 
     def _notify_failed_test(self):
-        text = f'{self.build_context.build_name} - {self.playbook} Failed\n' \
-               f'for more details run: `{self.tunnel_command}` and browse into the following link\n' \
-               f'{self.client.api_client.configuration.host}'
-        text += f'/#/WorkPlan/{self.incident_id}' if self.incident_id else ''
+        text_list = [
+            "Y U mad cactus?",
+            "Cactus & Chill",
+            "TROLOLOLOLOLOLOL",
+            "Cactus having fun in the sun",
+            "Test Failure - you have failed to provide CACTUS",
+            "Urgent message - you have been Cactused",
+            "Give me C! Give me A! Give me C! Give me T, U, S! What did you get??? Itay mad!!",
+            "You can't fixed that, just go to the beach",
+            "And the jackpot of 0 bonusly points goes to… CACTUS!",
+            "watch out from Covid, put on a mask",
+            "go get vaccinated https://www.youtube.com/watch?v=c28wYeCVA-4",
+            "Covid still not over, come back one year https://media.giphy.com/media/WrrRU5Jx9K2ApQ9NPp/giphy.gif",
+            "If you have a bug… On Friday night… Who you gonna call? call Cactus!"
+        ]
+        from random import randrange
+        text = text_list[randrange(len(text_list))]
         if self.build_context.slack_user_id:
             self.build_context.slack_client.api_call(
                 "chat.postMessage",
                 json={
                     'channel': self.build_context.slack_user_id,
-                    'username': 'Content CircleCI',
+                    'username': 'Cactus Hunter',
                     'as_user': 'False',
                     'text': text
                 }
@@ -1495,6 +1508,8 @@ class TestContext:
             is_first_playback_run: Is the playbook runs in playback mode
             is_second_playback_run: Is The playbook run on a second playback after a freshly created record
         """
+        self._notify_failed_test()
+        self._notify_failed_test()
         if status == PB_Status.COMPLETED:
             self.build_context.logging_module.success(f'PASS: {self} succeed')
             # It's not enough that the record run will pass to declare the test as successful,
