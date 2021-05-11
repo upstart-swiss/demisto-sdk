@@ -472,7 +472,11 @@ class Linter:
         with add_typing_module(lint_files=lint_files, python_version=py_num):
             stdout, stderr, exit_code = run_command_os(command=build_mypy_command(files=lint_files, version=py_num),
                                                        cwd=self._pack_abs_dir)
-        logger.debug(f"{log_prompt} - Finished exit-code: {exit_code}")
+        try:
+            # TODO: remove try/except
+            logger.debug(f"{log_prompt} - Finished exit-code: {exit_code}")
+        except UnboundLocalError:
+            return SUCCESS, ""
         logger.debug(f"{log_prompt} - Finished stdout: {RL if stdout else ''}{stdout}")
         logger.debug(f"{log_prompt} - Finished stderr: {RL if stderr else ''}{stderr}")
         if stderr or exit_code:

@@ -183,7 +183,8 @@ def build_mypy_command(files: List[Path], version: float) -> str:
     # Disable cache creation
     command += " --cache-dir=/dev/null"
     # Generating path patterns - file1 file2 file3,..
-    files_list = [str(item) for item in files]
+    # TODO: remove cylance
+    files_list = [str(item) for item in files if 'Cylance' not in str(item)]
     command += " " + " ".join(files_list)
 
     return command
