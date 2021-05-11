@@ -469,9 +469,14 @@ class Linter:
         """
         log_prompt = f"{self._pack_name} - Mypy"
         logger.info(f"{log_prompt} - Start")
+        if not lint_files:  # TODO: remove this also
+            return SUCCESS, ""
         with add_typing_module(lint_files=lint_files, python_version=py_num):
-            stdout, stderr, exit_code = run_command_os(command=build_mypy_command(files=lint_files, version=py_num),
-                                                       cwd=self._pack_abs_dir)
+
+            stdout, stderr, exit_code = run_command_os(
+                command=build_mypy_command(files=lint_files, version=py_num),
+                cwd=self._pack_abs_dir
+            )
         try:
             # TODO: remove try/except
             logger.debug(f"{log_prompt} - Finished exit-code: {exit_code}")
