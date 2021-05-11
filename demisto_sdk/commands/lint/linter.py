@@ -20,8 +20,7 @@ from demisto_sdk.commands.common.constants import (INTEGRATIONS_DIR,
                                                    PACKS_PACK_META_FILE_NAME,
                                                    TYPE_PWSH, TYPE_PYTHON)
 # Local packages
-from demisto_sdk.commands.common.tools import (get_all_docker_images,
-                                               run_command_os)
+from demisto_sdk.commands.common.tools import run_command_os
 from demisto_sdk.commands.lint.commands_builder import (
     build_bandit_command, build_flake8_command, build_mypy_command,
     build_pwsh_analyze_command, build_pwsh_test_command, build_pylint_command,
@@ -205,7 +204,10 @@ class Linter:
         # Docker images
         if self._facts["docker_engine"]:
             logger.info(f"{log_prompt} - Pulling docker images, can take up to 1-2 minutes if not exists locally ")
-            self._facts["images"] = [[image, -1] for image in get_all_docker_images(script_obj=script_obj)]
+            current_docker_image = script_obj.get("dockerimage")
+            if not current_docker_image:
+                current_docker_image = script_obj.get('script', {}).get('dockerimage')
+            self._facts["images"] = [[current_docker_image, -1]]
             # Gather environment variables for docker execution
             self._facts["env_vars"] = {
                 "CI": os.getenv("CI", False),
