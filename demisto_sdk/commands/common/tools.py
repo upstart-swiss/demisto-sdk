@@ -758,7 +758,8 @@ def get_dict_from_file(path: str, use_ryaml: bool = False) -> Tuple[Dict, Union[
     return {}, None
 
 
-def find_type(path: str = '', _dict=None, file_type: Optional[str] = None, ignore_sub_categories: bool = False):  # noqa: C901
+# flake8: noqa: C901
+def find_type(path: str = '', _dict=None, file_type: Optional[str] = None, ignore_sub_categories: bool = False):
     """
     returns the content file type
 
@@ -780,14 +781,30 @@ def find_type(path: str = '', _dict=None, file_type: Optional[str] = None, ignor
 
         return FileType.CHANGELOG
 
-    if path.endswith('.png'):
+    # integration image
+    if path.endswith('_image.png') and not path.endswith("Author_image.png"):
         return FileType.IMAGE
 
-    if not _dict and not file_type:
-        _dict, file_type = get_dict_from_file(path)
+    # doc files images
+    if path.endswith('.png') and DOC_FILES_DIR in path:
+        return FileType.DOC_IMAGE
 
-    if file_type == 'py':
+    if path.endswith('.ps1'):
+        return FileType.POWERSHELL_FILE
+
+    if path.endswith('.py'):
         return FileType.PYTHON_FILE
+
+    if path.endswith('.js'):
+        return FileType.JAVASCRIPT_FILE
+
+    try:
+        if not _dict and not file_type:
+            _dict, file_type = get_dict_from_file(path)
+
+    except FileNotFoundError:
+        # unable to find the file - hence can't identify it
+        return None
 
     if file_type == 'yml':
         if 'category' in _dict:
@@ -815,26 +832,29 @@ def find_type(path: str = '', _dict=None, file_type: Optional[str] = None, ignor
         if 'orientation' in _dict:
             return FileType.REPORT
 
-        if 'preProcessingScript' in _dict:
+        if 'color' in _dict and 'cliName' not in _dict:  # check against another key to make it more robust
             return FileType.INCIDENT_TYPE
 
-        if 'regex' in _dict or checked_type(path, JSON_ALL_INDICATOR_TYPES_REGEXES):
+        # 'regex' key can be found in new reputations files while 'reputations' key is for the old reputations
+        # located in reputations.json file.
+        if 'regex' in _dict or 'reputations' in _dict:
             return FileType.REPUTATION
 
         if 'brandName' in _dict and 'transformer' in _dict:
             return FileType.OLD_CLASSIFIER
 
-        if 'transformer' in _dict and 'keyTypeMap' in _dict:
-            return FileType.CLASSIFIER
+        if ('transformer' in _dict and 'keyTypeMap' in _dict) or 'mapping' in _dict:
+            if _dict.get('type') and _dict.get('type') == 'classification':
+                return FileType.CLASSIFIER
+            elif _dict.get('type') and 'mapping' in _dict.get('type'):
+                return FileType.MAPPER
+            return None
 
         if 'canvasContextConnections' in _dict:
             return FileType.CONNECTION
 
-        if 'mapping' in _dict:
-            return FileType.MAPPER
-
-        if 'layout' in _dict or 'kind' in _dict or os.path.basename(path).startswith('layoutscontainer-'):
-            if 'kind' in _dict or 'typeId' in _dict or os.path.basename(path).startswith('layoutscontainer-'):
+        if 'layout' in _dict or 'kind' in _dict:
+            if 'kind' in _dict or 'typeId' in _dict:
                 return FileType.LAYOUT
 
             return FileType.DASHBOARD

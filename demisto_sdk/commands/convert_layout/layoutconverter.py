@@ -3,13 +3,14 @@ import os
 import shutil
 from tempfile import mkdtemp
 from typing import Tuple
-from tabulate import tabulate
 
-from demisto_sdk.commands.common.constants import (
-    ENTITY_NAME_SEPARATORS, LAYOUTS_DIR, FileType, INCIDENT_TYPES_DIR)
-from demisto_sdk.commands.common.tools import (LOG_COLORS, get_child_files,
-                                               get_json, get_yaml,
-                                               print_color, find_type)
+from demisto_sdk.commands.common.constants import (ENTITY_NAME_SEPARATORS,
+                                                   INCIDENT_TYPES_DIR,
+                                                   LAYOUTS_DIR, FileType)
+from demisto_sdk.commands.common.tools import (LOG_COLORS, find_type,
+                                               get_child_files, get_json,
+                                               get_yaml, print_color)
+from tabulate import tabulate
 
 
 class LayoutConverter:
@@ -87,7 +88,8 @@ class LayoutConverter:
 
         for file_path in files:
             file_data: dict = get_json(file_path)
-            if find_type(path=file_path, _dict=file_data, file_type='json') == FileType.LAYOUT:
+            if find_type(path=file_path, _dict=file_data, file_type='json') in [FileType.LAYOUT,
+                                                                                FileType.LAYOUTS_CONTAINER]:
                 layout_version: str = self.get_layout_version(file_data)
                 layout_id: str = self.get_layout_id(file_data, layout_version)
                 file_object: dict = {'path': file_path, 'version': layout_version}
@@ -100,9 +102,9 @@ class LayoutConverter:
                 if layout_id in pack_layouts_object:
                     pack_layouts_object[layout_id]['files'].append(file_object)
                     pack_layouts_object[layout_id]['>=6.0_exist'] = pack_layouts_object[layout_id]['>=6.0_exist'] \
-                                                                    or is_new_version
+                        or is_new_version
                     pack_layouts_object[layout_id]['<6.0_exist'] = pack_layouts_object[layout_id]['<6.0_exist'] \
-                                                                   or is_old_version
+                        or is_old_version
                 # Insert new layout to the pack layouts object
                 else:
                     pack_layouts_object[layout_id] = {
@@ -364,9 +366,12 @@ class LayoutConverter:
                     data['group'] = 'indicator'
 
                 # Update dynamic fields
-                if sections := old_data.get('layout', {}).get('sections', []):
+                sections = old_data.get('layout', {}).get('sections', [])
+                if sections:
                     data[old_layout_kind] = {'sections': sections}
-                if tabs := old_data.get('layout', {}).get('tabs', []):
+
+                tabs = old_data.get('layout', {}).get('tabs', [])
+                if tabs:
                     data[old_layout_kind] = {'tabs': tabs}
 
         # Update group field
@@ -380,7 +385,7 @@ class LayoutConverter:
 
     @staticmethod
     def update_bounded_it(pack_path: str, layout_id: str, old_layouts: list):
-        type_ids = list(set([ol.get('data').get('typeId') for ol in old_layouts]))
+        type_ids = list({ol.get('data').get('typeId') for ol in old_layouts})
         files = get_child_files(os.path.join(pack_path, INCIDENT_TYPES_DIR))
         its: list = list()
         for file in files:
