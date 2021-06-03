@@ -242,7 +242,7 @@ class Initiator:
             fill_manually = user_response in ['y', 'yes']
 
             pack_metadata = Initiator.create_metadata(fill_manually)
-            self.category = pack_metadata['categories'][0]
+            self.category = pack_metadata['categories'][0] if pack_metadata['categories'] else ''
             json.dump(pack_metadata, fp, indent=4)
 
             click.echo(f"Created pack metadata at path : {metadata_path}", color=LOG_COLORS.GREEN)
