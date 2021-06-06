@@ -205,6 +205,7 @@ class ValidateManager:
         files_validation_result = set()
 
         for path in self.file_path.split(','):
+            print(get_pack_name(path))
             error_ignore_list = self.get_error_ignore_list(get_pack_name(path))
 
             if os.path.isfile(path):
@@ -1132,8 +1133,6 @@ class ValidateManager:
 
                 except MissingSectionHeaderError:
                     pass
-
-            print(ignored_errors_list)
 
         return ignored_errors_list
 
