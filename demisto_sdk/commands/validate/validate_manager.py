@@ -1133,6 +1133,8 @@ class ValidateManager:
                 except MissingSectionHeaderError:
                     pass
 
+            print(ignored_errors_list)
+
         return ignored_errors_list
 
     @staticmethod

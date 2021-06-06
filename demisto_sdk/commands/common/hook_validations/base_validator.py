@@ -33,8 +33,6 @@ class BaseValidator:
     @staticmethod
     def should_ignore_error(error_code, ignored_errors):
         """Return True is code should be ignored and False otherwise"""
-        print(error_code)
-        print(ignored_errors)
         if ignored_errors is None:
             return False
 
