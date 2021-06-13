@@ -36,9 +36,11 @@ class IntegrationYMLFormat(BaseUpdateYML):
                  no_validate: bool = False,
                  verbose: bool = False,
                  update_docker: bool = False,
+                 deprecated: bool = False,
                  **kwargs):
         super().__init__(input, output, path, from_version, no_validate, verbose=verbose, **kwargs)
         self.update_docker = update_docker
+        self.deprecated = deprecated
         if not from_version and self.data.get("script", {}).get("type") == TYPE_PWSH:
             self.from_version = '5.5.0'
 
