@@ -16,7 +16,7 @@ from demisto_sdk.commands.common.constants import (
     ENTITY_NAME_SEPARATORS, ENTITY_TYPE_TO_DIR, FILE_EXIST_REASON,
     FILE_NOT_IN_CC_REASON, INTEGRATIONS_DIR, PLAYBOOKS_DIR, SCRIPTS_DIR,
     TEST_PLAYBOOKS_DIR)
-from demisto_sdk.commands.common.tools import (LOG_COLORS, find_type,
+from demisto_sdk.commands.common.tools import (find_type,
                                                get_child_directories,
                                                get_child_files, get_code_lang,
                                                get_dict_from_file,
@@ -24,7 +24,7 @@ from demisto_sdk.commands.common.tools import (LOG_COLORS, find_type,
                                                get_entity_name_by_entity_type,
                                                get_files_in_dir, get_json,
                                                get_yaml, get_yml_paths_in_dir,
-                                               print_color,
+                                               print_error, print_info,
                                                retrieve_file_ending)
 from demisto_sdk.commands.format.format_module import format_manager
 from demisto_sdk.commands.split_yml.extractor import Extractor
@@ -123,11 +123,11 @@ class Downloader:
             output_flag, input_flag = True, True
             if not self.output_pack_path:
                 output_flag = False
-                print_color("Error: Missing option '-o' / '--output'.", LOG_COLORS.RED)
+                print_error("Error: Missing option '-o' / '--output'.")
             if not self.input_files:
                 if not self.all_custom_content:
                     input_flag = False
-                    print_color("Error: Missing option '-i' / '--input'.", LOG_COLORS.RED)
+                    print_error("Error: Missing option '-i' / '--input'.")
             if not input_flag or not output_flag:
                 return False
         return True
@@ -162,17 +162,15 @@ class Downloader:
 
         except ApiException as e:
             if e.status == 401:
-                print_color('\nVerify that the environment variable DEMISTO_API_KEY is configured properly.\n',
-                            LOG_COLORS.RED)
-            print_color(f'Exception raised when fetching custom content:\nStatus: {e}', LOG_COLORS.NATIVE)
+                print_error('\nVerify that the environment variable DEMISTO_API_KEY is configured properly.\n')
+            print_info(f'Exception raised when fetching custom content:\nStatus: {e}')
             return False
         except MaxRetryError as e:
-            print_color('\nVerify that the environment variable DEMISTO_BASE_URL is configured properly.\n',
-                        LOG_COLORS.RED)
-            print_color(f'Exception raised when fetching custom content:\n{e}', LOG_COLORS.NATIVE)
+            print_error('\nVerify that the environment variable DEMISTO_BASE_URL is configured properly.\n')
+            print_info(f'Exception raised when fetching custom content:\n{e}')
             return False
         except Exception as e:
-            print_color(f'Exception raised when fetching custom content:\n{e}', LOG_COLORS.NATIVE)
+            print_info(f'Exception raised when fetching custom content:\n{e}')
             return False
 
     def get_custom_content_objects(self) -> List[dict]:
@@ -198,8 +196,7 @@ class Downloader:
             self.all_custom_content_objects = self.get_custom_content_objects()
             list_files = [[cco['name'], cco['type']] for cco in self.all_custom_content_objects
                           if cco.get('name')]
-            print_color('\nThe following files are available to be downloaded from Demisto instance:\n',
-                        LOG_COLORS.NATIVE)
+            print_info('\nThe following files are available to be downloaded from Demisto instance:\n')
             print(tabulate(list_files, headers=['FILE NAME', 'FILE TYPE']))
             return True
         return False
@@ -223,8 +220,8 @@ class Downloader:
         output_pack_path = self.output_pack_path
         if not (os.path.isdir(output_pack_path) and
                 os.path.basename(os.path.dirname(os.path.abspath(output_pack_path))) == 'Packs'):
-            print_color(f"Path {output_pack_path} is not a valid Path pack. The designated output pack's path is"
-                        f" of format ~/.../Packs/$PACK_NAME", LOG_COLORS.RED)
+            print_error(f"Path {output_pack_path} is not a valid Path pack. The designated output pack's path is"
+                        f" of format ~/.../Packs/$PACK_NAME")
             return False
         return True
 
@@ -342,10 +339,9 @@ class Downloader:
                 self.files_not_downloaded.append([input_file_name, FILE_NOT_IN_CC_REASON])
 
         number_of_files = len(self.custom_content)
-        print_color(f'\nDemisto instance: Enumerating objects: {number_of_files}, done.',
-                    LOG_COLORS.NATIVE)
-        print_color(f'Demisto instance: Receiving objects: 100% ({number_of_files}/{number_of_files}),'
-                    f' done.\n', LOG_COLORS.NATIVE)
+        print_info(f'\nDemisto instance: Enumerating objects: {number_of_files}, done.')
+        print_info(f'Demisto instance: Receiving objects: 100% ({number_of_files}/{number_of_files}),'
+                   f' done.\n')
 
     def exist_in_pack_content(self, custom_content_object: dict) -> bool:
         """
@@ -531,14 +527,14 @@ class Downloader:
             try:
                 shutil.move(src=ex_file_path, dst=corresponding_pack_file_path)
             except shutil.Error as e:
-                print_color(e, LOG_COLORS.RED)
+                print_error(e)
                 raise
             self.format_file(corresponding_pack_file_path, ex_file_ending)
 
         try:
             shutil.rmtree(temp_dir, ignore_errors=True)
         except shutil.Error as e:
-            print_color(e, LOG_COLORS.RED)
+            print_error(e)
             raise
 
         self.num_merged_files += 1
@@ -566,7 +562,7 @@ class Downloader:
         try:
             shutil.move(src=file_path, dst=corresponding_pack_file_path)
         except shutil.Error as e:
-            print_color(e, LOG_COLORS.RED)
+            print_error(e)
             raise
 
         self.format_file(corresponding_pack_file_path, corresponding_pack_file_object['file_ending'])
@@ -619,7 +615,7 @@ class Downloader:
         try:
             shutil.move(src=file_path, dst=file_output_path)
         except shutil.Error as e:
-            print_color(e, LOG_COLORS.RED)
+            print_error(e)
             raise
 
         self.format_file(file_output_path, file_ending)
@@ -634,9 +630,9 @@ class Downloader:
         :param file_type: The file type
         :return: None
         """
-        print_color(f'- {action} {file_type} "{file_name}"', LOG_COLORS.NATIVE)
+        print_info(f'- {action} {file_type} "{file_name}"')
         if self.run_format:  # TODO: Refactored after format had verbose arg
-            print_color('', LOG_COLORS.NATIVE)
+            print_info('')
 
     def get_corresponding_pack_content_object(self, custom_content_object: dict) -> dict:
         """
@@ -749,7 +745,7 @@ class Downloader:
         try:
             shutil.rmtree(self.custom_content_temp_dir, ignore_errors=True)
         except shutil.Error as e:
-            print_color(e, LOG_COLORS.RED)
+            print_error(e)
             raise
 
     def log_files_downloaded(self) -> None:
@@ -772,7 +768,7 @@ class Downloader:
         elif merged_msg:
             log_msg = f'\n{merged_msg}.'
         if log_msg:
-            print_color(log_msg, LOG_COLORS.NATIVE)
+            print_info(log_msg)
 
     def log_files_not_downloaded(self) -> None:
         """
@@ -780,8 +776,8 @@ class Downloader:
         :return: None
         """
         if self.files_not_downloaded:
-            print_color("\nFailed to download the following files:\n", LOG_COLORS.RED)
-            print_color(tabulate(self.files_not_downloaded, headers=['FILE NAME', 'REASON']), LOG_COLORS.RED)
+            print_error("\nFailed to download the following files:\n")
+            print_error(tabulate(self.files_not_downloaded, headers=['FILE NAME', 'REASON']))
             reasons: list = [file[1] for file in self.files_not_downloaded]
             if FILE_EXIST_REASON in reasons:
-                print_color('\nTo merge existing files use the download command with -f.', LOG_COLORS.NATIVE)
+                print_info('\nTo merge existing files use the download command with -f.')

@@ -3,7 +3,7 @@ import json
 import os.path
 import re
 
-from demisto_sdk.commands.common.tools import LOG_COLORS, print_color
+from demisto_sdk.commands.common.tools import print_success
 from demisto_sdk.commands.run_cmd.runner import Runner
 
 STRING_TYPES = (str, bytes)  # type: ignore
@@ -27,7 +27,7 @@ def save_output(path, file_name, content):
     with open(output, mode="w", encoding="utf8") as doc_file:
         doc_file.write(content)
 
-    print_color(f'Output file was saved to :\n{output}', LOG_COLORS.GREEN)
+    print_success(f'Output file was saved to :\n{output}')
 
 
 def generate_section(title, data=''):

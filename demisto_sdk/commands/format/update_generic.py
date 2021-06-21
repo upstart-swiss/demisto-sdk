@@ -10,12 +10,11 @@ from demisto_sdk.commands.common.constants import (INTEGRATION, PLAYBOOK,
                                                    FileType)
 from demisto_sdk.commands.common.hook_validations.structure import \
     StructureValidator
-from demisto_sdk.commands.common.tools import (LOG_COLORS, find_type,
-                                               get_dict_from_file,
+from demisto_sdk.commands.common.tools import (find_type, get_dict_from_file,
                                                get_pack_metadata,
                                                get_remote_file,
                                                is_file_from_content_repo,
-                                               print_color)
+                                               print_success, print_warning)
 from demisto_sdk.commands.format.format_constants import (
     DEFAULT_VERSION, ERROR_RETURN_CODE, NEW_FILE_DEFAULT_5_5_0_FROMVERSION,
     OLD_FILE_DEFAULT_1_FROMVERSION, SKIP_RETURN_CODE, SUCCESS_RETURN_CODE,
@@ -142,7 +141,7 @@ class BaseUpdate:
                 if isinstance(value, str) and key == 'include':
                     extended_schema: dict = full_schema.get(f'schema;{value}')  # type: ignore
                     if extended_schema is None:
-                        click.echo(f"Could not find sub-schema for {value}", LOG_COLORS.YELLOW)
+                        print_warning(f"Could not find sub-schema for {value}")
                     # sometimes the sub-schema can have it's own sub-schemas so we need to unify that too
                     return BaseUpdate.recursive_extend_schema(deepcopy(extended_schema), full_schema)
                 else:
@@ -328,7 +327,7 @@ class BaseUpdate:
             return SKIP_RETURN_CODE
         else:
             if self.verbose:
-                print_color('Starting validating files structure', LOG_COLORS.GREEN)
+                print_success('Starting validating files structure')
             # validates only on files in content repo
             if self.relative_content_path:
                 file_type = find_type(self.output_file)

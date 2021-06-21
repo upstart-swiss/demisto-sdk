@@ -5,7 +5,7 @@ from demisto_sdk.commands.common.constants import TYPE_JS, TYPE_PWSH
 from demisto_sdk.commands.common.hook_validations.docker import \
     DockerImageValidator
 from demisto_sdk.commands.common.hook_validations.script import ScriptValidator
-from demisto_sdk.commands.common.tools import (LOG_COLORS, print_color,
+from demisto_sdk.commands.common.tools import (print_warning,
                                                server_version_compare)
 from demisto_sdk.commands.format.format_constants import (ERROR_RETURN_CODE,
                                                           SKIP_RETURN_CODE,
@@ -44,11 +44,11 @@ class ScriptYMLFormat(BaseUpdateYML):
             script_obj (dict): script object
         """
         if script_obj.get('type') == TYPE_JS:
-            print_color('Skipping docker image update as this is a Javascript automation.', LOG_COLORS.YELLOW)
+            print_warning('Skipping docker image update as this is a Javascript automation.')
             return
         dockerimage = script_obj.get('dockerimage')
         if not dockerimage:  # default image -> nothing to do
-            print_color('Skipping docker image update as default docker image is being used.', LOG_COLORS.YELLOW)
+            print_warning('Skipping docker image update as default docker image is being used.')
             return
         image_name = dockerimage.split(':')[0]
         try:

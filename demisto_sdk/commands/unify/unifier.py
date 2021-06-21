@@ -15,10 +15,9 @@ from demisto_sdk.commands.common.constants import (DEFAULT_IMAGE_PREFIX,
                                                    SCRIPTS_DIR,
                                                    TYPE_TO_EXTENSION, FileType)
 from demisto_sdk.commands.common.errors import Errors
-from demisto_sdk.commands.common.tools import (LOG_COLORS, arg_to_list,
-                                               find_type, get_yaml,
-                                               get_yml_paths_in_dir,
-                                               print_color, print_error,
+from demisto_sdk.commands.common.tools import (arg_to_list, find_type,
+                                               get_yaml, get_yml_paths_in_dir,
+                                               print_error, print_success,
                                                print_warning,
                                                server_version_compare)
 from inflection import dasherize, underscore
@@ -201,7 +200,7 @@ class Unifier:
 
         output_map = self.write_yaml_with_docker(yml_unified, self.yml_data, script_obj)
         unifier_outputs = list(output_map.keys()), self.yml_path, script_path, image_path, desc_path
-        print_color(f'Created unified yml: {list(output_map.keys())}', LOG_COLORS.GREEN)
+        print_success(f'Created unified yml: {list(output_map.keys())}')
 
         return unifier_outputs[0]
 

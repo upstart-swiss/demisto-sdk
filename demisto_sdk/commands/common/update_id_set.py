@@ -27,10 +27,10 @@ from demisto_sdk.commands.common.constants import (CLASSIFIERS_DIR,
                                                    REPORTS_DIR, SCRIPTS_DIR,
                                                    TEST_PLAYBOOKS_DIR,
                                                    WIDGETS_DIR, FileType)
-from demisto_sdk.commands.common.tools import (LOG_COLORS, find_type, get_json,
+from demisto_sdk.commands.common.tools import (find_type, get_json,
                                                get_pack_name, get_yaml,
-                                               print_color, print_error,
-                                               print_warning)
+                                               print_error, print_info,
+                                               print_success, print_warning)
 from demisto_sdk.commands.unify.unifier import Unifier
 
 CONTENT_ENTITIES = ['Integrations', 'Scripts', 'Playbooks', 'TestPlaybooks', 'Classifiers',
@@ -698,8 +698,7 @@ def create_common_entity_data(path, name, to_version, from_version, pack):
 
 def get_pack_metadata_data(file_path, print_logs: bool):
     try:
-        if print_logs:
-            print(f'adding {file_path} to id_set')
+        print_info(f'adding {file_path} to id_set', logging=print_logs)
 
         json_data = get_json(file_path)
         pack_data = {
@@ -862,8 +861,7 @@ def process_integration(file_path: str, print_logs: bool) -> list:
     try:
         if os.path.isfile(file_path):
             if find_type(file_path) in (FileType.INTEGRATION, FileType.BETA_INTEGRATION):
-                if print_logs:
-                    print(f'adding {file_path} to id_set')
+                print_info(f'adding {file_path} to id_set', logging=print_logs)
                 res.append(get_integration_data(file_path))
         else:
             # package integration
@@ -871,8 +869,7 @@ def process_integration(file_path: str, print_logs: bool) -> list:
             file_path = os.path.join(file_path, '{}.yml'.format(package_name))
             if os.path.isfile(file_path):
                 # locally, might have leftover dirs without committed files
-                if print_logs:
-                    print(f'adding {file_path} to id_set')
+                print_info(f'adding {file_path} to id_set', logging=print_logs)
                 res.append(get_integration_data(file_path))
     except Exception as exp:  # noqa
         print_error(f'failed to process {file_path}, Error: {str(exp)}')
@@ -886,15 +883,13 @@ def process_script(file_path: str, print_logs: bool) -> list:
     try:
         if os.path.isfile(file_path):
             if find_type(file_path) == FileType.SCRIPT:
-                if print_logs:
-                    print(f'adding {file_path} to id_set')
+                print_info(f'adding {file_path} to id_set', logging=print_logs)
                 res.append(get_script_data(file_path))
         else:
             # package script
             unifier = Unifier(file_path)
             yml_path, code = unifier.get_script_or_integration_package_data()
-            if print_logs:
-                print(f'adding {file_path} to id_set')
+            print_info(f'adding {file_path} to id_set', logging=print_logs)
             res.append(get_script_data(yml_path, script_code=code))
     except Exception as exp:  # noqa
         print_error(f'failed to process {file_path}, Error: {str(exp)}')
@@ -917,8 +912,7 @@ def process_incident_fields(file_path: str, print_logs: bool, incidents_types_li
     res = []
     try:
         if find_type(file_path) == FileType.INCIDENT_FIELD:
-            if print_logs:
-                print(f'adding {file_path} to id_set')
+            print_info(f'adding {file_path} to id_set', logging=print_logs)
             res.append(get_incident_field_data(file_path, incidents_types_list))
     except Exception as exp:  # noqa
         print_error(f'failed to process {file_path}, Error: {str(exp)}')
@@ -941,8 +935,7 @@ def process_indicator_types(file_path: str, print_logs: bool, all_integrations: 
     try:
         # ignore old reputations.json files
         if not os.path.basename(file_path) == 'reputations.json' and find_type(file_path) == FileType.REPUTATION:
-            if print_logs:
-                print(f'adding {file_path} to id_set')
+            print_info(f'adding {file_path} to id_set', logging=print_logs)
             res.append(get_indicator_type_data(file_path, all_integrations))
     except Exception as exp:  # noqa
         print_error(f'failed to process {file_path}, Error: {str(exp)}')
@@ -978,8 +971,7 @@ def process_general_items(file_path: str, print_logs: bool, expected_file_types:
     res = []
     try:
         if find_type(file_path) in expected_file_types:
-            if print_logs:
-                print(f'adding {file_path} to id_set')
+            print_info(f'adding {file_path} to id_set', logging=print_logs)
             res.append(data_extraction_func(file_path))
     except Exception as exp:  # noqa
         print_error(f'failed to process {file_path}, Error: {str(exp)}')
@@ -1002,8 +994,7 @@ def process_test_playbook_path(file_path: str, print_logs: bool) -> tuple:
     script = None
     playbook = None
     try:
-        if print_logs:
-            print(f'adding {file_path} to id_set')
+        print_info(f'adding {file_path} to id_set', logging=print_logs)
         if find_type(file_path) == FileType.TEST_SCRIPT:
             script = get_script_data(file_path)
         if find_type(file_path) == FileType.TEST_PLAYBOOK:
@@ -1193,34 +1184,32 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
             refresh_interval = int(os.getenv('DEMISTO_SDK_ID_SET_REFRESH_INTERVAL', -1))
         except ValueError:
             refresh_interval = -1
-            print_color(
+            print_warning(
                 "Re-creating id_set.\n"
                 "DEMISTO_SDK_ID_SET_REFRESH_INTERVAL env var is set with value: "
                 f"{os.getenv('DEMISTO_SDK_ID_SET_REFRESH_INTERVAL')} which is an illegal integer."
-                "\nPlease modify or unset env var.", LOG_COLORS.YELLOW
-            )
+                "\nPlease modify or unset env var.")
         if refresh_interval > 0:  # if file is newer than refersh interval use it as is
             mtime = os.path.getmtime(id_set_path)
             mtime_dt = datetime.fromtimestamp(mtime)
             target_time = time.time() - (refresh_interval * 60)
             if mtime >= target_time:
-                print_color(
+                print_success(
                     f"DEMISTO_SDK_ID_SET_REFRESH_INTERVAL env var is set and detected that current id_set: {id_set_path}"
                     f" modify time: {mtime_dt} "
                     "doesn't require a refresh. Will use current id set. "
-                    "If you want to force an id set referesh unset DEMISTO_SDK_ID_SET_REFRESH_INTERVAL or set to -1.",
-                    LOG_COLORS.GREEN)
+                    "If you want to force an id set referesh unset DEMISTO_SDK_ID_SET_REFRESH_INTERVAL or set to -1.")
                 with open(id_set_path, mode="r") as f:
                     return json.load(f)
             else:
-                print_color(f"DEMISTO_SDK_ID_SET_REFRESH_INTERVAL env var is set but current id_set: {id_set_path} "
-                            f"modify time: {mtime_dt} is older than refresh interval. "
-                            "Will re-generate the id set.", LOG_COLORS.GREEN)
+                print_success(f"DEMISTO_SDK_ID_SET_REFRESH_INTERVAL env var is set but current id_set: {id_set_path} "
+                              f"modify time: {mtime_dt} is older than refresh interval. "
+                              "Will re-generate the id set.")
         else:
-            print_color("Note: DEMISTO_SDK_ID_SET_REFRESH_INTERVAL env var is not enabled. "
-                        f"Will re-generate the id set even though file exists: {id_set_path}. "
-                        "If you would like to avoid re-generating the id set every run, you can set the env var "
-                        "DEMISTO_SDK_ID_SET_REFRESH_INTERVAL to a refresh interval in minutes.", LOG_COLORS.GREEN)
+            print_success("Note: DEMISTO_SDK_ID_SET_REFRESH_INTERVAL env var is not enabled. "
+                          f"Will re-generate the id set even though file exists: {id_set_path}. "
+                          "If you would like to avoid re-generating the id set every run, you can set the env var "
+                          "DEMISTO_SDK_ID_SET_REFRESH_INTERVAL to a refresh interval in minutes.")
         print("")  # add an empty line for clarity
 
     if objects_to_create is None:
@@ -1246,12 +1235,12 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
 
     pool = Pool(processes=int(cpu_count()))
 
-    print_color("Starting the creation of the id_set", LOG_COLORS.GREEN)
+    print_success("Starting the creation of the id_set")
 
     with click.progressbar(length=len(objects_to_create), label="Progress of id set creation") as progress_bar:
 
         if 'Packs' in objects_to_create:
-            print_color("\nStarting iteration over Packs", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over Packs")
             for pack_data in pool.map(partial(get_pack_metadata_data,
                                               print_logs=print_logs
                                               ),
@@ -1261,7 +1250,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
         progress_bar.update(1)
 
         if 'Integrations' in objects_to_create:
-            print_color("\nStarting iteration over Integrations", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over Integrations")
             for arr in pool.map(partial(process_integration,
                                         print_logs=print_logs
                                         ),
@@ -1271,7 +1260,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
         progress_bar.update(1)
 
         if 'Playbooks' in objects_to_create:
-            print_color("\nStarting iteration over Playbooks", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over Playbooks")
             for arr in pool.map(partial(process_general_items,
                                         print_logs=print_logs,
                                         expected_file_types=(FileType.PLAYBOOK,),
@@ -1283,7 +1272,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
         progress_bar.update(1)
 
         if 'Scripts' in objects_to_create:
-            print_color("\nStarting iteration over Scripts", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over Scripts")
             for arr in pool.map(partial(process_script,
                                         print_logs=print_logs
                                         ),
@@ -1293,7 +1282,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
         progress_bar.update(1)
 
         if 'TestPlaybooks' in objects_to_create:
-            print_color("\nStarting iteration over TestPlaybooks", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over TestPlaybooks")
             for pair in pool.map(partial(process_test_playbook_path,
                                          print_logs=print_logs
                                          ),
@@ -1306,7 +1295,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
         progress_bar.update(1)
 
         if 'Classifiers' in objects_to_create:
-            print_color("\nStarting iteration over Classifiers", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over Classifiers")
             for arr in pool.map(partial(process_general_items,
                                         print_logs=print_logs,
                                         expected_file_types=(FileType.CLASSIFIER, FileType.OLD_CLASSIFIER),
@@ -1318,7 +1307,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
         progress_bar.update(1)
 
         if 'Dashboards' in objects_to_create:
-            print_color("\nStarting iteration over Dashboards", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over Dashboards")
             for arr in pool.map(partial(process_general_items,
                                         print_logs=print_logs,
                                         expected_file_types=(FileType.DASHBOARD,),
@@ -1330,7 +1319,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
         progress_bar.update(1)
 
         if 'IncidentTypes' in objects_to_create:
-            print_color("\nStarting iteration over Incident Types", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over Incident Types")
             for arr in pool.map(partial(process_general_items,
                                         print_logs=print_logs,
                                         expected_file_types=(FileType.INCIDENT_TYPE,),
@@ -1343,7 +1332,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
 
         # Has to be called after 'IncidentTypes' is called
         if 'IncidentFields' in objects_to_create:
-            print_color("\nStarting iteration over Incident Fields", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over Incident Fields")
             for arr in pool.map(partial(process_incident_fields,
                                         print_logs=print_logs,
                                         incidents_types_list=incident_type_list
@@ -1354,7 +1343,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
         progress_bar.update(1)
 
         if 'IndicatorFields' in objects_to_create:
-            print_color("\nStarting iteration over Indicator Fields", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over Indicator Fields")
             for arr in pool.map(partial(process_general_items,
                                         print_logs=print_logs,
                                         expected_file_types=(FileType.INDICATOR_FIELD,),
@@ -1367,7 +1356,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
 
         # Has to be called after 'Integrations' is called
         if 'IndicatorTypes' in objects_to_create:
-            print_color("\nStarting iteration over Indicator Types", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over Indicator Types")
             for arr in pool.map(partial(process_indicator_types,
                                         print_logs=print_logs,
                                         all_integrations=integration_list
@@ -1378,7 +1367,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
         progress_bar.update(1)
 
         if 'Layouts' in objects_to_create:
-            print_color("\nStarting iteration over Layouts", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over Layouts")
             for arr in pool.map(partial(process_general_items,
                                         print_logs=print_logs,
                                         expected_file_types=(FileType.LAYOUT,),
@@ -1397,7 +1386,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
         progress_bar.update(1)
 
         if 'Reports' in objects_to_create:
-            print_color("\nStarting iteration over Reports", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over Reports")
             for arr in pool.map(partial(process_general_items,
                                         print_logs=print_logs,
                                         expected_file_types=(FileType.REPORT,),
@@ -1409,7 +1398,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
         progress_bar.update(1)
 
         if 'Widgets' in objects_to_create:
-            print_color("\nStarting iteration over Widgets", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over Widgets")
             for arr in pool.map(partial(process_general_items,
                                         print_logs=print_logs,
                                         expected_file_types=(FileType.WIDGET,),
@@ -1421,7 +1410,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
         progress_bar.update(1)
 
         if 'Mappers' in objects_to_create:
-            print_color("\nStarting iteration over Mappers", LOG_COLORS.GREEN)
+            print_success("\nStarting iteration over Mappers")
             for arr in pool.map(partial(process_general_items,
                                         print_logs=print_logs,
                                         expected_file_types=(FileType.MAPPER,),
@@ -1452,7 +1441,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
     new_ids_dict['Packs'] = packs_dict
 
     exec_time = time.time() - start_time
-    print_color("Finished the creation of the id_set. Total time: {} seconds".format(exec_time), LOG_COLORS.GREEN)
+    print_success("Finished the creation of the id_set. Total time: {} seconds".format(exec_time))
     duplicates = find_duplicates(new_ids_dict, print_logs)
     if any(duplicates) and print_logs:
         print_error(
@@ -1466,8 +1455,7 @@ def find_duplicates(id_set, print_logs):
     lists_to_return = []
 
     for object_type in ID_SET_ENTITIES:
-        if print_logs:
-            print_color("Checking diff for {}".format(object_type), LOG_COLORS.GREEN)
+        print_success("Checking diff for {}".format(object_type), logging=print_logs)
         objects = id_set.get(object_type)
         ids = {list(specific_item.keys())[0] for specific_item in objects}
 
@@ -1476,8 +1464,7 @@ def find_duplicates(id_set, print_logs):
             if has_duplicate(objects, id_to_check, object_type, print_logs):
                 dup_list.append(id_to_check)
         lists_to_return.append(dup_list)
-    if print_logs:
-        print_color("Checking diff for Incident and Indicator Fields", LOG_COLORS.GREEN)
+    print_success("Checking diff for Incident and Indicator Fields", logging=print_logs)
 
     fields = id_set['IncidentFields'] + id_set['IndicatorFields']
     field_ids = {list(field.keys())[0] for field in fields}

@@ -9,11 +9,11 @@ import yaml
 from demisto_sdk.commands.common.configuration import Configuration
 from demisto_sdk.commands.common.constants import (TYPE_PWSH, TYPE_PYTHON,
                                                    TYPE_TO_EXTENSION)
-from demisto_sdk.commands.common.tools import (LOG_COLORS,
-                                               get_all_docker_images,
+from demisto_sdk.commands.common.tools import (get_all_docker_images,
                                                get_pipenv_dir,
                                                get_python_version, pascal_case,
-                                               print_color, print_error)
+                                               print_error, print_info,
+                                               print_success, print_warning)
 from ruamel.yaml import YAML
 from ruamel.yaml.scalarstring import SingleQuotedScalarString
 
@@ -88,7 +88,7 @@ class Extractor:
         except ValueError as ex:
             print_error(str(ex))
             return 1
-        self.print_logs("Starting migration of: {} to dir: {}".format(self.input, output_path), log_color=LOG_COLORS.NATIVE)
+        print_info("Starting migration of: {} to dir: {}".format(self.input, output_path), logging=self.logging)
         os.makedirs(output_path, exist_ok=True)
         base_name = os.path.basename(output_path) if not self.base_name else self.base_name
         code_file = "{}/{}".format(output_path, base_name)
@@ -99,7 +99,7 @@ class Extractor:
         self.extract_image("{}/{}_image.png".format(output_path, base_name))
         self.extract_long_description("{}/{}_description.md".format(output_path, base_name))
         yaml_out = "{}/{}.yml".format(output_path, base_name)
-        self.print_logs("Creating yml file: {} ...".format(yaml_out), log_color=LOG_COLORS.NATIVE)
+        print_info("Creating yml file: {} ...".format(yaml_out), logging=self.logging)
         ryaml = YAML()
         ryaml.preserve_quotes = True
         with open(self.input, 'r') as yf:
@@ -115,7 +115,7 @@ class Extractor:
         script_obj['script'] = SingleQuotedScalarString('')
         code_type = script_obj['type']
         if code_type == TYPE_PWSH and not yaml_obj.get('fromversion'):
-            self.print_logs("Setting fromversion for PowerShell to: 5.5.0", log_color=LOG_COLORS.NATIVE)
+            print_info("Setting fromversion for PowerShell to: 5.5.0", logging=self.logging)
             yaml_obj['fromversion'] = "5.5.0"
         with open(yaml_out, 'w') as yf:
             ryaml.dump(yaml_obj, yf)
@@ -126,7 +126,7 @@ class Extractor:
             readme = output_path + '/README.md'
             if os.path.exists(yml_readme):
                 found_readme = True
-                self.print_logs(f"Copying {readme} to {readme}", log_color=LOG_COLORS.NATIVE)
+                print_info(f"Copying {readme} to {readme}", logging=self.logging)
                 shutil.copy(yml_readme, readme)
             else:
                 # open an empty file
@@ -136,36 +136,36 @@ class Extractor:
         # Python code formatting and dev env setup
         if code_type == TYPE_PYTHON:
             if self.basic_fmt:
-                self.print_logs("Running autopep8 on file: {} ...".format(code_file), log_color=LOG_COLORS.NATIVE)
+                print_warning("Running autopep8 on file: {} ...".format(code_file), logging=self.logging)
                 try:
                     subprocess.call(["autopep8", "-i", "--max-line-length", "130", code_file])
                 except FileNotFoundError:
-                    self.print_logs("autopep8 skipped! It doesn't seem you have autopep8 installed.\n"
-                                    "Make sure to install it with: pip install autopep8.\n"
-                                    "Then run: autopep8 -i {}".format(code_file), LOG_COLORS.YELLOW)
+                    print_warning("autopep8 skipped! It doesn't seem you have autopep8 installed.\n"
+                                  "Make sure to install it with: pip install autopep8.\n"
+                                  "Then run: autopep8 -i {}".format(code_file), logging=self.logging)
             if self.pipenv:
                 if self.basic_fmt:
-                    self.print_logs("Running isort on file: {} ...".format(code_file), LOG_COLORS.NATIVE)
+                    print_warning("Running isort on file: {} ...".format(code_file), logging=self.logging)
                     try:
                         subprocess.call(["isort", code_file])
                     except FileNotFoundError:
-                        self.print_logs("isort skipped! It doesn't seem you have isort installed.\n"
-                                        "Make sure to install it with: pip install isort.\n"
-                                        "Then run: isort {}".format(code_file), LOG_COLORS.YELLOW)
+                        print_warning("isort skipped! It doesn't seem you have isort installed.\n"
+                                      "Make sure to install it with: pip install isort.\n"
+                                      "Then run: isort {}".format(code_file), logging=self.logging)
 
-                self.print_logs("Detecting python version and setting up pipenv files ...", log_color=LOG_COLORS.NATIVE)
+                print_warning("Detecting python version and setting up pipenv files ...", logging=self.logging)
                 docker = get_all_docker_images(script_obj)[0]
                 py_ver = get_python_version(docker, self.config.log_verbose)
                 pip_env_dir = get_pipenv_dir(py_ver, self.config.envs_dirs_base)
-                self.print_logs("Copying pipenv files from: {}".format(pip_env_dir), log_color=LOG_COLORS.NATIVE)
+                print_warning("Copying pipenv files from: {}".format(pip_env_dir), logging=self.logging)
                 shutil.copy("{}/Pipfile".format(pip_env_dir), output_path)
                 shutil.copy("{}/Pipfile.lock".format(pip_env_dir), output_path)
                 env = os.environ.copy()
                 env["PIPENV_IGNORE_VIRTUALENVS"] = "1"
                 try:
                     subprocess.call(["pipenv", "install", "--dev"], cwd=output_path, env=env)
-                    self.print_logs("Installing all py requirements from docker: [{}] into pipenv".format(docker),
-                                    LOG_COLORS.NATIVE)
+                    print_info("Installing all py requirements from docker: [{}] into pipenv".format(docker),
+                               logging=self.logging)
                     requirements = get_pip_requirements(docker)
                     fp = tempfile.NamedTemporaryFile(delete=False)
                     fp.write(requirements.encode('utf-8'))
@@ -175,18 +175,19 @@ class Extractor:
                         subprocess.check_call(["pipenv", "install", "-r", fp.name], cwd=output_path, env=env)
 
                     except Exception:
-                        self.print_logs("Failed installing requirements in pipenv.\n "
-                                        "Please try installing manually after extract ends\n", LOG_COLORS.RED)
+                        print_error("Failed installing requirements in pipenv.\n "
+                                    "Please try installing manually after extract ends\n", logging=self.logging)
 
                     os.unlink(fp.name)
-                    self.print_logs("Installing flake8 for linting", log_color=LOG_COLORS.NATIVE)
+                    print_info("Installing flake8 for linting", logging=self.logging)
                     subprocess.call(["pipenv", "install", "--dev", "flake8"], cwd=output_path, env=env)
                 except FileNotFoundError as err:
-                    self.print_logs("pipenv install skipped! It doesn't seem you have pipenv installed.\n"
-                                    "Make sure to install it with: pip3 install pipenv.\n"
-                                    f"Then run in the package dir: pipenv install --dev\n.Err: {err}", LOG_COLORS.YELLOW)
+                    print_info("pipenv install skipped! It doesn't seem you have pipenv installed.\n"
+                               "Make sure to install it with: pip3 install pipenv.\n"
+                               f"Then run in the package dir: pipenv install --dev\n.Err: {err}",
+                               logging=self.logging)
                 arg_path = os.path.relpath(output_path)
-                self.print_logs("\nCompleted: setting up package: {}\n".format(arg_path), LOG_COLORS.GREEN)
+                print_success("\nCompleted: setting up package: {}\n".format(arg_path), logging=self.logging)
                 next_steps: str = "Next steps: \n" \
                                   "* Install additional py packages for unit testing (if needed): cd {};" \
                                   " pipenv install <package>\n".format(arg_path) if code_type == TYPE_PYTHON else ''
@@ -197,14 +198,14 @@ class Extractor:
                 if found_readme:
                     next_steps += "    git rm {}\n".format(os.path.splitext(self.input)[0] + '_README.md')
                 next_steps += "    git add {}\n".format(arg_path)
-                self.print_logs(next_steps, log_color=LOG_COLORS.NATIVE)
+                print_info(next_steps, logging=self.logging)
 
             else:
-                self.print_logs("Skipping pipenv and requirements installation - Note: no Pipfile will be created",
-                                log_color=LOG_COLORS.YELLOW)
+                print_info("Skipping pipenv and requirements installation - Note: no Pipfile will be created",
+                           logging=self.logging)
 
-        self.print_logs(f"Finished splitting the yml file - you can find the split results here: {output_path}",
-                        log_color=LOG_COLORS.GREEN)
+        print_success(f"Finished splitting the yml file - you can find the split results here: {output_path}",
+                      logging=self.logging)
         return 0
 
     def extract_code(self, code_file_path) -> int:
@@ -227,7 +228,7 @@ class Extractor:
         ext = TYPE_TO_EXTENSION[lang_type]
         if not code_file_path.endswith(ext):
             code_file_path += ext
-        self.print_logs("Extracting code to: {} ...".format(code_file_path), log_color=LOG_COLORS.NATIVE)
+        print_info("Extracting code to: {} ...".format(code_file_path), logging=self.logging)
         with open(code_file_path, 'wt') as code_file:
             if lang_type == TYPE_PYTHON and self.demisto_mock:
                 code_file.write("import demistomock as demisto  # noqa: F401\n")
@@ -253,7 +254,7 @@ class Extractor:
         """
         if self.file_type == 'script':
             return 0  # no image in script type
-        self.print_logs("Extracting image to: {} ...".format(output_path), log_color=LOG_COLORS.NATIVE)
+        print_warning("Extracting image to: {} ...".format(output_path), logging=self.logging)
         im_field = self.yml_data.get('image')
         if im_field and len(im_field.split(',')) >= 2:
             image_b64 = self.yml_data['image'].split(',')[1]
@@ -271,17 +272,7 @@ class Extractor:
             return 0  # no long description in script type
         long_description = self.yml_data.get('detaileddescription')
         if long_description:
-            self.print_logs("Extracting long description to: {} ...".format(output_path), log_color=LOG_COLORS.NATIVE)
+            print_info("Extracting long description to: {} ...".format(output_path), logging=self.logging)
             with open(output_path, 'w', encoding='utf-8') as desc_file:
                 desc_file.write(long_description)
         return 0
-
-    def print_logs(self, log_msg: str, log_color: str) -> None:
-        """
-        Prints the logging message if logging is enabled
-        :param log_msg: The logging message
-        :param log_color: The printing color
-        :return: None
-        """
-        if self.logging:
-            print_color(log_msg, log_color)

@@ -4,9 +4,8 @@ import re
 import tempfile
 
 import demisto_client
-from demisto_sdk.commands.common.tools import (LOG_COLORS, print_color,
-                                               print_error, print_v,
-                                               print_warning)
+from demisto_sdk.commands.common.tools import (print_error, print_success,
+                                               print_v, print_warning)
 from demisto_sdk.commands.json_to_outputs.json_to_outputs import \
     json_to_outputs
 
@@ -126,9 +125,9 @@ class Runner:
         for entry in answer:
             # answer should have entries with `contents` - the readable output of the command
             if entry.parent_content:
-                print_color('### Command:', LOG_COLORS.YELLOW)
+                print_warning('### Command:')
             if entry.contents:
-                print_color('## Readable Output', LOG_COLORS.YELLOW)
+                print_warning('## Readable Output')
                 if entry.type == self.ERROR_ENTRY_TYPE:
                     print_error(entry.contents + '\n')
                 else:
@@ -153,17 +152,17 @@ class Runner:
                     with open(result, 'r+') as log_info:
                         for line in log_info:
                             output_file.write(line.encode('utf-8'))
-            print_color(f'Debug Log successfully exported to {self.debug_path}', LOG_COLORS.GREEN)
+            print_success(f'Debug Log successfully exported to {self.debug_path}')
         else:
-            print_color('## Detailed Log', LOG_COLORS.YELLOW)
+            print_warning('## Detailed Log')
             for log_id in log_ids:
                 result = self.client.download_file(log_id)
                 with open(result, 'r+') as log_info:
                     for line in log_info:
                         if self.SECTIONS_HEADER_REGEX.match(line):
-                            print_color(line, LOG_COLORS.YELLOW)
+                            print_warning(line)
                         elif self.FULL_LOG_REGEX.match(line):
-                            print_color('Full Integration Log:', LOG_COLORS.YELLOW)
+                            print_warning('Full Integration Log:')
                         else:
                             print(line)
 
@@ -229,7 +228,7 @@ class Runner:
                                 except Exception:
                                     pass
                             output_file.write(line.encode('utf-8'))
-            print_color(f'Debug Log successfully exported to {self.debug_path}', LOG_COLORS.GREEN)
+            print_success(f'Debug Log successfully exported to {self.debug_path}')
             return temp_dict
 
     def execute_command(self, command: str):

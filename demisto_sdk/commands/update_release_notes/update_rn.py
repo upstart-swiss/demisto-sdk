@@ -17,15 +17,14 @@ from demisto_sdk.commands.common.constants import (
     FileType)
 from demisto_sdk.commands.common.hook_validations.structure import \
     StructureValidator
-from demisto_sdk.commands.common.tools import (LOG_COLORS, find_type,
-                                               get_api_module_ids,
+from demisto_sdk.commands.common.tools import (find_type, get_api_module_ids,
                                                get_api_module_integrations_set,
                                                get_from_version, get_json,
                                                get_latest_release_notes_text,
                                                get_pack_name, get_remote_file,
                                                get_yaml, pack_name_to_path,
-                                               print_color, print_error,
-                                               print_warning, run_command)
+                                               print_error, print_warning,
+                                               run_command)
 
 
 class UpdateRN:
@@ -81,8 +80,8 @@ class UpdateRN:
                     if self.update_type is None:
                         self.update_type = "revision"
                     new_version, new_metadata = self.bump_version_number(self.specific_version, self.pre_release)
-                    print_color(f"Changes were detected. Bumping {self.pack} to version: {new_version}",
-                                LOG_COLORS.NATIVE)
+                    click.secho(f"Changes were detected. Bumping {self.pack} to version: {new_version}",
+                                fg='reset')
                 else:
                     new_metadata = self.get_pack_metadata()
                     new_version = new_metadata.get('currentVersion', '99.99.99')
@@ -125,13 +124,13 @@ class UpdateRN:
                 except RuntimeError:
                     print_warning(f'Could not add the release note files to git: {rn_path}')
                 if self.existing_rn_changed:
-                    print_color(f"Finished updating release notes for {self.pack}."
+                    click.secho(f"Finished updating release notes for {self.pack}."
                                 f"\nNext Steps:\n - Please review the "
                                 f"created release notes found at {rn_path} and document any changes you "
                                 f"made by replacing '%%UPDATE_RN%%'.\n - Commit "
                                 f"the new release notes to your branch.\nFor information regarding proper"
                                 f" format of the release notes, please refer to "
-                                f"https://xsoar.pan.dev/docs/integrations/changelog", LOG_COLORS.GREEN)
+                                f"https://xsoar.pan.dev/docs/integrations/changelog", fg='green')
                     return True
                 else:
                     click.secho("No changes to pack files were detected from the previous time "
@@ -260,8 +259,8 @@ class UpdateRN:
         current_version = self.master_version if self.master_version != '0.0.0' else self.get_pack_metadata().get(
             'currentVersion', '99.99.99')
         if specific_version:
-            print_color(f"Bumping {self.pack} to the version {specific_version}. If you need to update"
-                        f" the release notes a second time, please remove the -v flag.", LOG_COLORS.NATIVE)
+            click.secho(f"Bumping {self.pack} to the version {specific_version}. If you need to update"
+                        f" the release notes a second time, please remove the -v flag.", fg='reset')
             data_dictionary['currentVersion'] = specific_version
             return specific_version, data_dictionary
         elif self.update_type == 'major':
@@ -300,8 +299,8 @@ class UpdateRN:
         if self._does_pack_metadata_exist():
             with open(self.metadata_path, 'w') as file_path:
                 json.dump(metadata_dict, file_path, indent=4)
-                print_color(f"Updated pack metadata version at path : {self.metadata_path}",
-                            LOG_COLORS.GREEN)
+                click.secho(f"Updated pack metadata version at path : {self.metadata_path}",
+                            fg='green')
 
     @staticmethod
     def check_rn_dir(rn_path):

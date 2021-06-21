@@ -14,10 +14,9 @@ from demisto_sdk.commands.common.configuration import Configuration
 from demisto_sdk.commands.common.constants import (
     PACKS_DIR, PACKS_INTEGRATION_README_REGEX, PACKS_WHITELIST_FILE_NAME,
     FileType, re)
-from demisto_sdk.commands.common.tools import (LOG_COLORS, find_type,
-                                               get_pack_name,
+from demisto_sdk.commands.common.tools import (find_type, get_pack_name,
                                                is_file_path_in_pack,
-                                               print_color, print_error,
+                                               print_error, print_success,
                                                print_warning, run_command)
 
 ENTROPY_THRESHOLD = 4.0
@@ -487,14 +486,14 @@ class SecretsValidator(object):
         return branch_name_reg.group(1)
 
     def find_secrets(self):
-        print_color('Starting secrets detection', LOG_COLORS.GREEN)
+        print_success('Starting secrets detection')
         is_circle = self.is_circle
         branch_name = self.get_branch_name()
         secrets_found = self.get_secrets(branch_name, is_circle)
         if secrets_found:
             return True
         else:
-            print_color('Finished validating secrets, no secrets were found.', LOG_COLORS.GREEN)
+            print_success('Finished validating secrets, no secrets were found.')
             return False
 
     def remove_secrets_disabled_line(self, file_content: str) -> str:

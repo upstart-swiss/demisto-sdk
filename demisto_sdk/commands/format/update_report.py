@@ -1,8 +1,7 @@
 from typing import Tuple
 
 import click
-from demisto_sdk.commands.common.tools import (LOG_COLORS, print_color,
-                                               print_error)
+from demisto_sdk.commands.common.tools import print_error, print_warning
 from demisto_sdk.commands.format.format_constants import (ERROR_RETURN_CODE,
                                                           SKIP_RETURN_CODE,
                                                           SUCCESS_RETURN_CODE)
@@ -64,7 +63,7 @@ class ReportJSONFormat(BaseUpdateJSON):
                 print_error('Moving forward without updating type field')
                 return
 
-            print_color('Please specify the desired type: pdf | csv | docx', LOG_COLORS.YELLOW)
+            print_warning('Please specify the desired type: pdf | csv | docx')
             user_desired_type = input()
             if user_desired_type.lower() in ('pdf', 'csv', 'docx'):
                 self.data['type'] = user_desired_type.lower()

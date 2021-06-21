@@ -2,7 +2,7 @@ import subprocess
 from shutil import copy
 from typing import Tuple
 
-from demisto_sdk.commands.common.tools import LOG_COLORS, print_color
+from demisto_sdk.commands.common.tools import print_info, print_warning
 from demisto_sdk.commands.format.format_constants import (
     ERROR_RETURN_CODE, SKIP_VALIDATE_PY_RETURN_CODE, SUCCESS_RETURN_CODE)
 from demisto_sdk.commands.format.update_generic_yml import BaseUpdate
@@ -45,9 +45,9 @@ class PythonFileFormat(BaseUpdate):
         try:
             subprocess.call(["autopep8", "-i", "--max-line-length", AUTOPEP_LINE_LENGTH, py_file_path])
         except FileNotFoundError:
-            print_color("autopep8 skipped! It doesn't seem you have autopep8 installed.\n "
-                        "Make sure to install it with: pip install autopep8.\n "
-                        "Then run: autopep8 -i {}".format(py_file_path), LOG_COLORS.YELLOW)
+            print_warning("autopep8 skipped! It doesn't seem you have autopep8 installed.\n "
+                          "Make sure to install it with: pip install autopep8.\n "
+                          "Then run: autopep8 -i {}".format(py_file_path))
             return False
         return True
 
@@ -56,7 +56,7 @@ class PythonFileFormat(BaseUpdate):
         copy(str(self.source_file), str(self.output_file))
 
     def run_format(self) -> int:
-        print_color(f'\n======= Updating file: {self.source_file} =======', LOG_COLORS.WHITE)
+        print_info(f'\n======= Updating file: {self.source_file} =======')
         py_file_path = self.source_file
         if self.output_file != self.source_file:
             self.create_output_file()

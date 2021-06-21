@@ -6,8 +6,7 @@ from typing import Tuple
 import click
 import yaml
 from demisto_sdk.commands.common.hook_validations.layout import LayoutValidator
-from demisto_sdk.commands.common.tools import (LOG_COLORS, print_color,
-                                               print_error)
+from demisto_sdk.commands.common.tools import print_error, print_warning
 from demisto_sdk.commands.format.format_constants import (
     DEFAULT_VERSION, ERROR_RETURN_CODE, NEW_FILE_DEFAULT_5_FROMVERSION,
     SKIP_RETURN_CODE, SUCCESS_RETURN_CODE, VERSION_6_0_0)
@@ -156,7 +155,7 @@ class LayoutBaseFormat(BaseUpdateJSON, ABC):
                 print_error('Moving forward without updating group field')
                 return
 
-            print_color('Please specify the desired group: incident or indicator', LOG_COLORS.YELLOW)
+            print_warning('Please specify the desired group: incident or indicator')
             user_desired_group = input()
             if re.match(r'(^incident$)', user_desired_group, re.IGNORECASE):
                 self.data['group'] = 'incident'

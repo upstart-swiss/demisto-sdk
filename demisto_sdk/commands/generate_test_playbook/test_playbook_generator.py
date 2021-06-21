@@ -2,8 +2,7 @@ import json
 import os
 from typing import Dict
 
-from demisto_sdk.commands.common.tools import (LOG_COLORS, print_color,
-                                               print_error)
+from demisto_sdk.commands.common.tools import print_error, print_success
 from ruamel.yaml import YAML
 
 
@@ -339,4 +338,4 @@ class PlaybookTestsGenerator:
         with open(self.test_playbook_yml_path, 'w') as yf:
             ryaml.dump(test_playbook.to_dict(), yf)
 
-            print_color(f'Test playbook yml was saved at:\n{self.test_playbook_yml_path}', LOG_COLORS.GREEN)
+            print_success(f'Test playbook yml was saved at:\n{self.test_playbook_yml_path}')

@@ -6,7 +6,7 @@ from demisto_sdk.commands.common.constants import DEPRECATED_REGEXES
 from demisto_sdk.commands.common.errors import Errors
 from demisto_sdk.commands.common.hook_validations.content_entity_validator import \
     ContentEntityValidator
-from demisto_sdk.commands.common.tools import LOG_COLORS, is_string_uuid
+from demisto_sdk.commands.common.tools import is_string_uuid, print_warning
 
 
 class PlaybookValidator(ContentEntityValidator):
@@ -24,7 +24,7 @@ class PlaybookValidator(ContentEntityValidator):
             bool. Whether the playbook is valid or not
         """
         if 'TestPlaybooks' in self.file_path:
-            click.echo(f'Skipping validation for Test Playbook {self.file_path}', color=LOG_COLORS.YELLOW)
+            print_warning(f'Skipping validation for Test Playbook {self.file_path}')
             return True
         playbook_checks = [
             super().is_valid_file(validate_rn),

@@ -88,11 +88,6 @@ def get_yml_paths_in_dir(project_dir: str, error_msg: str = '') -> Tuple[list, s
     return yml_files, yml_files[0]
 
 
-# print srt in the given color
-def print_color(obj, color):
-    print(u'{}{}{}'.format(color, obj, LOG_COLORS.NATIVE))
-
-
 def get_files_in_dir(project_dir: str, file_endings: list, recursive: bool = True) -> list:
     """
     Gets the project directory and returns the path of all yml, json and py files in it
@@ -124,16 +119,24 @@ def src_root() -> Path:
     return Path(git_dir) / 'demisto_sdk'
 
 
-def print_error(error_str):
-    print_color(error_str, LOG_COLORS.RED)
+def print_error(error_str, logging=True):
+    if logging:
+        click.secho(error_str, fg='red')
 
 
-def print_warning(warning_str):
-    print_color(warning_str, LOG_COLORS.YELLOW)
+def print_warning(warning_str, logging=True):
+    if logging:
+        click.secho(warning_str, fg='yellow')
 
 
-def print_success(success_str):
-    print_color(success_str, LOG_COLORS.GREEN)
+def print_success(success_str, logging=True):
+    if logging:
+        click.secho(success_str, fg='green')
+
+
+def print_info(info_str, logging=True):
+    if logging:
+        click.secho(info_str, fg='reset')
 
 
 def run_command(command, is_silenced=True, exit_on_error=True, cwd=None):

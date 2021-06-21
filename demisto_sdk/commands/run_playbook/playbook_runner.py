@@ -3,8 +3,7 @@ import time
 
 import demisto_client
 from demisto_client.demisto_api.rest import ApiException
-from demisto_sdk.commands.common.tools import (LOG_COLORS, print_color,
-                                               print_error)
+from demisto_sdk.commands.common.tools import print_error, print_success
 
 
 class PlaybookRunner:
@@ -47,9 +46,8 @@ class PlaybookRunner:
 
         work_plan_link = self.base_link_to_workplan + str(incident_id)
         if self.should_wait:
-            print(f'Waiting for the playbook to finish running.. \n'
-                  f'To see the playbook run in real-time please go to : {work_plan_link}',
-                  LOG_COLORS.GREEN)
+            print_success(f'Waiting for the playbook to finish running.. \n'
+                          f'To see the playbook run in real-time please go to : {work_plan_link}')
 
             elasped_time = 0
             start_time = time.time()
@@ -70,7 +68,7 @@ class PlaybookRunner:
                 if playbook_results["state"] == "failed":
                     print_error("The playbook finished running with status: FAILED")
                 else:
-                    print_color("The playbook has completed its run successfully", LOG_COLORS.GREEN)
+                    print_success("The playbook has completed its run successfully")
 
         # The command does not wait for the playbook to finish running
         else:
@@ -108,7 +106,7 @@ class PlaybookRunner:
                         '3. Unauthorized api key')
             raise e
 
-        print_color(f'The playbook: {self.playbook_id} was triggered successfully.', LOG_COLORS.GREEN)
+        print_success(f'The playbook: {self.playbook_id} was triggered successfully.')
         return response.id
 
     def get_playbook_results_dict(self, inc_id):

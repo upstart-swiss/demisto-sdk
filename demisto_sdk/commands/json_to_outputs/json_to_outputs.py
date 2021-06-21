@@ -76,8 +76,7 @@ import sys
 
 import dateparser
 import yaml
-from demisto_sdk.commands.common.tools import (LOG_COLORS, print_color,
-                                               print_error)
+from demisto_sdk.commands.common.tools import print_error, print_success
 
 
 def input_multiline():
@@ -221,9 +220,9 @@ def json_to_outputs(command, input, prefix, output=None, verbose=False, interact
             with open(output, 'w') as yf:
                 yf.write(yaml_output)
 
-                print_color(f'Outputs file was saved to :\n{output}', LOG_COLORS.GREEN)
+                print_success(f'Outputs file was saved to :\n{output}')
         else:
-            print_color("YAML Outputs\n\n", LOG_COLORS.GREEN)
+            print_success("YAML Outputs\n\n")
             print(yaml_output)
 
     except Exception as ex:

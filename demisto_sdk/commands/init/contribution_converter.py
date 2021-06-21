@@ -15,11 +15,11 @@ from demisto_sdk.commands.common.constants import (
     AUTOMATION, ENTITY_TYPE_TO_DIR, INTEGRATION, INTEGRATIONS_DIR,
     MARKETPLACE_LIVE_DISCUSSIONS, PACK_INITIAL_VERSION, SCRIPT, SCRIPTS_DIR,
     XSOAR_AUTHOR, XSOAR_SUPPORT, XSOAR_SUPPORT_URL)
-from demisto_sdk.commands.common.tools import (LOG_COLORS, capital_case,
-                                               find_type,
+from demisto_sdk.commands.common.tools import (capital_case, find_type,
                                                get_child_directories,
                                                get_child_files,
-                                               get_content_path)
+                                               get_content_path, print_error,
+                                               print_info)
 from demisto_sdk.commands.format.format_module import format_manager
 from demisto_sdk.commands.generate_docs.generate_integration_doc import \
     generate_integration_doc
@@ -161,16 +161,14 @@ class ContributionConverter:
             str: A unique pack directory name
         """
         while os.path.exists(os.path.join(self.packs_dir_path, pack_dir)):
-            click.echo(
-                f'Modifying pack name because pack {pack_dir} already exists in the content repo',
-                color=LOG_COLORS.NATIVE
-            )
+            print_info(
+                f'Modifying pack name because pack {pack_dir} already exists in the content repo')
             if len(pack_dir) >= 2 and pack_dir[-2].lower() == 'v' and pack_dir[-1].isdigit():
                 # increment by one
                 pack_dir = pack_dir[:-1] + str(int(pack_dir[-1]) + 1)
             else:
                 pack_dir += 'V2'
-            click.echo(f'New pack name is "{pack_dir}"', color=LOG_COLORS.NATIVE)
+            print_info(f'New pack name is "{pack_dir}"')
         return pack_dir
 
     def unpack_contribution_to_dst_pack_directory(self) -> None:
@@ -308,7 +306,7 @@ class ContributionConverter:
                     # create pack metadata file
                     with zipfile.ZipFile(self.contribution) as zipped_contrib:
                         with zipped_contrib.open('metadata.json') as metadata_file:
-                            click.echo(f'Pulling relevant information from {metadata_file.name}', color=LOG_COLORS.NATIVE)
+                            print_info(f'Pulling relevant information from {metadata_file.name}')
                             metadata = json.loads(metadata_file.read())
                             self.create_metadata_file(metadata)
                 # create base files
@@ -333,10 +331,8 @@ class ContributionConverter:
             # format
             self.format_converted_pack()
         except Exception as e:
-            click.echo(
-                f'Creating a Pack from the contribution zip failed with error: {e}\n {traceback.format_exc()}',
-                color=LOG_COLORS.RED
-            )
+            print_error(
+                f'Creating a Pack from the contribution zip failed with error: {e}\n {traceback.format_exc()}')
         finally:
             if self.contrib_conversion_errs:
                 click.echo(
@@ -415,7 +411,7 @@ class ContributionConverter:
         Create empty 'README.md', '.secrets-ignore', and '.pack-ignore' files that are expected
         to be in the base directory of a pack
         """
-        click.echo('Creating pack base files', color=LOG_COLORS.NATIVE)
+        print_info('Creating pack base files')
         fp = open(os.path.join(self.pack_dir_path, 'README.md'), 'a')
         fp.close()
 

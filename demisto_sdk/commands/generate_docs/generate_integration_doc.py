@@ -4,9 +4,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from demisto_sdk.commands.common.constants import (
     CONTEXT_OUTPUT_README_TABLE_HEADER, DOCS_COMMAND_SECTION_REGEX)
-from demisto_sdk.commands.common.tools import (LOG_COLORS, get_yaml,
-                                               print_color, print_error,
-                                               print_warning)
+from demisto_sdk.commands.common.tools import (get_yaml, print_error,
+                                               print_success, print_warning)
 from demisto_sdk.commands.generate_docs.common import (
     add_lines, build_example_dict, generate_numbered_section, generate_section,
     generate_table_section, save_output, string_escape_md)
@@ -30,7 +29,7 @@ def append_or_replace_command_in_docs(old_docs: str, new_doc_section: str, comma
     errs = list()
     if re.findall(regexp, old_docs, flags=re.DOTALL):
         new_docs = re.sub(regexp, new_doc_section, old_docs, flags=re.DOTALL)
-        print_color('New command docs has been replaced in README.md.', LOG_COLORS.GREEN)
+        print_success('New command docs has been replaced in README.md.')
     else:
         if command_name in old_docs:
             errs.append(f'Could not replace the command `{command_name}` in the file although it'
@@ -40,7 +39,7 @@ def append_or_replace_command_in_docs(old_docs: str, new_doc_section: str, comma
             # Remove trailing '\n'
             old_docs = old_docs[:-1]
         new_docs = f'{old_docs}\n{new_doc_section}'
-        print_color('New command docs has been added to the README.md.', LOG_COLORS.GREEN)
+        print_success('New command docs has been added to the README.md.')
     return new_docs, errs
 
 

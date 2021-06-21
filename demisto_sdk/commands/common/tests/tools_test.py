@@ -16,7 +16,7 @@ from demisto_sdk.commands.common.constants import (INTEGRATIONS_DIR,
                                                    TEST_PLAYBOOKS_DIR,
                                                    FileType)
 from demisto_sdk.commands.common.legacy_git_tools import git_path
-from demisto_sdk.commands.common.tools import (LOG_COLORS, arg_to_list,
+from demisto_sdk.commands.common.tools import (arg_to_list,
                                                filter_files_by_type,
                                                filter_files_on_pack,
                                                filter_packagify_changes,
@@ -402,16 +402,6 @@ def test_capital_case():
     assert res == "Good_life-here V2"
     res = tools.capital_case("")
     assert res == ""
-
-
-class TestPrintColor:
-    def test_print_color(self, mocker):
-        mocker.patch('builtins.print')
-
-        tools.print_color('test', LOG_COLORS.GREEN)
-
-        print_args = print.call_args[0][0]
-        assert print_args == u'{}{}{}'.format(LOG_COLORS.GREEN, 'test', LOG_COLORS.NATIVE)
 
 
 class TestReleaseVersion:
