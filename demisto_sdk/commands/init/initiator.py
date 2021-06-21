@@ -5,7 +5,6 @@ from distutils.dir_util import copy_tree
 from distutils.version import LooseVersion
 from typing import Dict, List
 
-import click
 import yaml
 import yamlordereddictloader
 from demisto_sdk.commands.common import tools
@@ -17,9 +16,9 @@ from demisto_sdk.commands.common.constants import (
     MARKETPLACE_LIVE_DISCUSSIONS, PACK_INITIAL_VERSION, PACK_SUPPORT_OPTIONS,
     PLAYBOOKS_DIR, REPORTS_DIR, SCRIPTS_DIR, TEST_PLAYBOOKS_DIR, WIDGETS_DIR,
     XSOAR_AUTHOR, XSOAR_SUPPORT, XSOAR_SUPPORT_URL, GithubContentConfig)
-from demisto_sdk.commands.common.tools import (LOG_COLORS,
-                                               get_common_server_path,
-                                               print_error, print_v,
+from demisto_sdk.commands.common.tools import (get_common_server_path,
+                                               print_error, print_info,
+                                               print_success, print_v,
                                                print_warning)
 
 
@@ -231,10 +230,8 @@ class Initiator:
 
         self.create_pack_base_files()
 
-        click.echo(
-            f"Successfully created the pack {self.dir_name} in: {self.full_output_path}",
-            color=LOG_COLORS.GREEN
-        )
+        print_success(
+            f"Successfully created the pack {self.dir_name} in: {self.full_output_path}")
 
         metadata_path = os.path.join(self.full_output_path, 'pack_metadata.json')
         with open(metadata_path, 'a') as fp:
@@ -245,7 +242,7 @@ class Initiator:
             self.category = pack_metadata['categories'][0]
             json.dump(pack_metadata, fp, indent=4)
 
-            click.echo(f"Created pack metadata at path : {metadata_path}", color=LOG_COLORS.GREEN)
+            print_success(f"Created pack metadata at path : {metadata_path}")
 
         create_integration = str(input("\nDo you want to create an integration in the pack? Y/N ")).lower()
         if create_integration in ['y', 'yes']:
@@ -266,7 +263,7 @@ class Initiator:
         Create empty 'README.md', '.secrets-ignore', and '.pack-ignore' files that are expected
         to be in the base directory of a pack
         """
-        click.echo('Creating pack base files', color=LOG_COLORS.NATIVE)
+        print_info('Creating pack base files')
         fp = open(os.path.join(self.full_output_path, 'README.md'), 'a')
         fp.close()
 
@@ -413,7 +410,7 @@ class Initiator:
         self.copy_common_server_python()
         self.copy_demistotmock()
 
-        click.echo(f"Finished creating integration: {self.full_output_path}.", color=LOG_COLORS.GREEN)
+        print_success(f"Finished creating integration: {self.full_output_path}.")
 
         return True
 
@@ -452,7 +449,7 @@ class Initiator:
         self.copy_common_server_python()
         self.copy_demistotmock()
 
-        click.echo(f"Finished creating script: {self.full_output_path}", color=LOG_COLORS.GREEN)
+        print_success(f"Finished creating script: {self.full_output_path}")
 
         return True
 
