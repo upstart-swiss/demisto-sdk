@@ -214,7 +214,7 @@ class Initiator:
         # if it does not exist create it
         elif tools.is_external_repository():
             if not os.path.isdir("Packs"):
-                print("Creating 'Packs' directory")
+                print_info("Creating 'Packs' directory")
                 os.mkdir('Packs')
             self.full_output_path = os.path.join("Packs", self.dir_name)
 

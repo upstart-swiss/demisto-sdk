@@ -1210,7 +1210,7 @@ def re_create_id_set(id_set_path: Optional[str] = DEFAULT_ID_SET_PATH, pack_to_c
                           f"Will re-generate the id set even though file exists: {id_set_path}. "
                           "If you would like to avoid re-generating the id set every run, you can set the env var "
                           "DEMISTO_SDK_ID_SET_REFRESH_INTERVAL to a refresh interval in minutes.")
-        print("")  # add an empty line for clarity
+        print_info("")  # add an empty line for clarity
 
     if objects_to_create is None:
         objects_to_create = CONTENT_ENTITIES

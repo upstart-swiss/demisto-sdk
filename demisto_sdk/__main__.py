@@ -23,7 +23,7 @@ from demisto_sdk.commands.common.tools import (filter_files_by_type,
                                                filter_files_on_pack, find_type,
                                                get_last_remote_release_version,
                                                get_pack_name, print_error,
-                                               print_warning)
+                                               print_info, print_warning)
 from demisto_sdk.commands.common.update_id_set import merge_id_sets_from_files
 from demisto_sdk.commands.convert.convert_manager import ConvertManager
 from demisto_sdk.commands.create_artifacts.content_artifacts_creator import \
@@ -950,7 +950,7 @@ def generate_docs(**kwargs):
         print_error('File is not an Integration, Script or a Playbook.')
         return 1
 
-    print(f'Start generating {file_type.value} documentation...')
+    print_info(f'Start generating {file_type.value} documentation...')
     if file_type == FileType.INTEGRATION:
         use_cases = kwargs.get('use_cases')
         command_permissions = kwargs.get('command_permissions')
@@ -1076,7 +1076,7 @@ def update_release_notes(**kwargs):
     if _pack and is_all:
         print_error("Please remove the --all flag when specifying only one pack.")
         sys.exit(0)
-    print("Starting to update release notes.")
+    print_info("Starting to update release notes.")
     if _pack and '/' in _pack:
         _pack = get_pack_name(_pack)
     try:

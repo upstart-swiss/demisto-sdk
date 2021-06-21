@@ -8,6 +8,7 @@ import sys
 import textwrap
 from typing import Any, Dict, List, Set
 
+import click
 # Third party packages
 import docker
 import docker.errors
@@ -196,7 +197,7 @@ class LintManager:
             for pkg in pkgs:
                 print_v(f"Found changed package {Colors.Fg.cyan}{pkg}{Colors.reset}",
                         log_verbose=self._verbose)
-        print(f"Execute lint and test on {Colors.Fg.cyan}{len(pkgs)}/{total_found}{Colors.reset} packages")
+        click.echo(f"Execute lint and test on {Colors.Fg.cyan}{len(pkgs)}/{total_found}{Colors.reset} packages")
 
         return pkgs
 
@@ -230,7 +231,7 @@ class LintManager:
         Returns:
             List[Path]: A list of names of packages that should run.
         """
-        print(
+        click.echo(
             f"Comparing to {Colors.Fg.cyan}{content_repo.remote()}/{base_branch}{Colors.reset} using branch {Colors.Fg.cyan}"
             f"{content_repo.active_branch}{Colors.reset}")
         staged_files = {content_repo.working_dir / Path(item.b_path).parent for item in
@@ -442,13 +443,13 @@ class LintManager:
                 check_str = check.capitalize().replace('_', ' ')
             if (check in PY_CHCEKS and TYPE_PYTHON in pkgs_type) or (check in PWSH_CHECKS and TYPE_PWSH in pkgs_type):
                 if code & skipped_code:
-                    print(f"{check_str} {' ' * spacing}- {Colors.Fg.cyan}[SKIPPED]{Colors.reset}")
+                    click.echo(f"{check_str} {' ' * spacing}- {Colors.Fg.cyan}[SKIPPED]{Colors.reset}")
                 elif code & return_exit_code:
-                    print(f"{check_str} {' ' * spacing}- {Colors.Fg.red}[FAIL]{Colors.reset}")
+                    click.echo(f"{check_str} {' ' * spacing}- {Colors.Fg.red}[FAIL]{Colors.reset}")
                 else:
-                    print(f"{check_str} {' ' * spacing}- {Colors.Fg.green}[PASS]{Colors.reset}")
+                    click.echo(f"{check_str} {' ' * spacing}- {Colors.Fg.green}[PASS]{Colors.reset}")
             elif check != 'image':
-                print(f"{check_str} {' ' * spacing}- {Colors.Fg.cyan}[SKIPPED]{Colors.reset}")
+                click.echo(f"{check_str} {' ' * spacing}- {Colors.Fg.cyan}[SKIPPED]{Colors.reset}")
 
     def report_failed_lint_checks(self, lint_status: dict, pkgs_status: dict, return_exit_code: int):
         """ Log failed lint log if exsits
@@ -461,12 +462,12 @@ class LintManager:
         for check in ["flake8", "XSOAR_linter", "bandit", "mypy", "vulture"]:
             if EXIT_CODES[check] & return_exit_code:
                 sentence = f" {check.capitalize()} errors "
-                print(f"\n{Colors.Fg.red}{'#' * len(sentence)}{Colors.reset}")
-                print(f"{Colors.Fg.red}{sentence}{Colors.reset}")
-                print(f"{Colors.Fg.red}{'#' * len(sentence)}{Colors.reset}\n")
+                click.echo(f"\n{Colors.Fg.red}{'#' * len(sentence)}{Colors.reset}")
+                click.echo(f"{Colors.Fg.red}{sentence}{Colors.reset}")
+                click.echo(f"{Colors.Fg.red}{'#' * len(sentence)}{Colors.reset}\n")
                 for fail_pack in lint_status[f"fail_packs_{check}"]:
-                    print(f"{Colors.Fg.red}{pkgs_status[fail_pack]['pkg']}{Colors.reset}")
-                    print(pkgs_status[fail_pack][f"{check}_errors"])
+                    click.echo(f"{Colors.Fg.red}{pkgs_status[fail_pack]['pkg']}{Colors.reset}")
+                    click.echo(pkgs_status[fail_pack][f"{check}_errors"])
                     self.linters_error_list.append({
                         'linter': check,
                         'pack': fail_pack,
@@ -478,13 +479,13 @@ class LintManager:
             check_str = check.capitalize().replace('_', ' ')
             if EXIT_CODES[check] & return_exit_code:
                 sentence = f" {check_str} errors "
-                print(f"\n{Colors.Fg.red}{'#' * len(sentence)}{Colors.reset}")
-                print(f"{Colors.Fg.red}{sentence}{Colors.reset}")
-                print(f"{Colors.Fg.red}{'#' * len(sentence)}{Colors.reset}\n")
+                click.echo(f"\n{Colors.Fg.red}{'#' * len(sentence)}{Colors.reset}")
+                click.echo(f"{Colors.Fg.red}{sentence}{Colors.reset}")
+                click.echo(f"{Colors.Fg.red}{'#' * len(sentence)}{Colors.reset}\n")
                 for fail_pack in lint_status[f"fail_packs_{check}"]:
-                    print(f"{Colors.Fg.red}{fail_pack}{Colors.reset}")
+                    click.echo(f"{Colors.Fg.red}{fail_pack}{Colors.reset}")
                     for image in pkgs_status[fail_pack]["images"]:
-                        print(image[f"{check}_errors"])
+                        click.echo(image[f"{check}_errors"])
 
     def report_warning_lint_checks(self, lint_status: dict, pkgs_status: dict, return_warning_code: int,
                                    all_packs: bool):
@@ -500,12 +501,12 @@ class LintManager:
             for check in ["flake8", "XSOAR_linter", "bandit", "mypy", "vulture"]:
                 if EXIT_CODES[check] & return_warning_code:
                     sentence = f" {check.capitalize()} warnings "
-                    print(f"\n{Colors.Fg.orange}{'#' * len(sentence)}{Colors.reset}")
-                    print(f"{Colors.Fg.orange}{sentence}{Colors.reset}")
-                    print(f"{Colors.Fg.orange}{'#' * len(sentence)}{Colors.reset}\n")
+                    click.echo(f"\n{Colors.Fg.orange}{'#' * len(sentence)}{Colors.reset}")
+                    click.echo(f"{Colors.Fg.orange}{sentence}{Colors.reset}")
+                    click.echo(f"{Colors.Fg.orange}{'#' * len(sentence)}{Colors.reset}\n")
                     for fail_pack in lint_status[f"warning_packs_{check}"]:
-                        print(f"{Colors.Fg.orange}{pkgs_status[fail_pack]['pkg']}{Colors.reset}")
-                        print(pkgs_status[fail_pack][f"{check}_warnings"])
+                        click.echo(f"{Colors.Fg.orange}{pkgs_status[fail_pack]['pkg']}{Colors.reset}")
+                        click.echo(pkgs_status[fail_pack][f"{check}_warnings"])
                         self.linters_error_list.append({
                             'linter': check,
                             'pack': fail_pack,
@@ -554,9 +555,9 @@ class LintManager:
                     if (not headline_printed and self._verbose) and (EXIT_CODES["pytest"] & return_exit_code):
                         # Log unit-tests
                         sentence = " Unit Tests "
-                        print(f"\n{Colors.Fg.cyan}{'#' * len(sentence)}")
-                        print(f"{sentence}")
-                        print(f"{'#' * len(sentence)}{Colors.reset}")
+                        click.echo(f"\n{Colors.Fg.cyan}{'#' * len(sentence)}")
+                        click.echo(f"{sentence}")
+                        click.echo(f"{'#' * len(sentence)}{Colors.reset}")
                         headline_printed = True
                     if not passed_printed:
                         print_v(f"\n{Colors.Fg.green}Passed Unit-tests:{Colors.reset}", log_verbose=self._verbose)
@@ -579,12 +580,12 @@ class LintManager:
             if not headline_printed:
                 # Log unit-tests
                 sentence = " Unit Tests "
-                print(f"\n{Colors.Fg.cyan}{'#' * len(sentence)}")
-                print(f"{sentence}")
-                print(f"{'#' * len(sentence)}{Colors.reset}")
-            print(f"\n{Colors.Fg.red}Failed Unit-tests:{Colors.reset}")
+                click.echo(f"\n{Colors.Fg.cyan}{'#' * len(sentence)}")
+                click.echo(f"{sentence}")
+                click.echo(f"{'#' * len(sentence)}{Colors.reset}")
+            click.echo(f"\n{Colors.Fg.red}Failed Unit-tests:{Colors.reset}")
             for fail_pack in lint_status["fail_packs_pytest"]:
-                print(wrapper_pack.fill(f"{Colors.Fg.red}{fail_pack}{Colors.reset}"))
+                click.echo(wrapper_pack.fill(f"{Colors.Fg.red}{fail_pack}{Colors.reset}"))
                 for image in pkgs_status[fail_pack]["images"]:
                     tests = image.get("pytest_json", {}).get("report", {}).get("tests")
                     if tests:
@@ -593,21 +594,21 @@ class LintManager:
                                 name = re.sub(pattern=r"\[.*\]",
                                               repl="",
                                               string=test_case.get("name"))
-                                print(wrapper_test.fill(name))
+                                click.echo(wrapper_test.fill(name))
                                 if test_case.get("call", {}).get("longrepr"):
-                                    print(wrapper_docker_image.fill(image['image']))
+                                    click.echo(wrapper_docker_image.fill(image['image']))
                                     for i in range(len(test_case.get("call", {}).get("longrepr"))):
                                         if i == 0:
-                                            print(wrapper_first_error.fill(
+                                            click.echo(wrapper_first_error.fill(
                                                 test_case.get("call", {}).get("longrepr")[i]))
                                         else:
-                                            print(wrapper_sec_error.fill(test_case.get("call", {}).get("longrepr")[i]))
-                                    print('\n')
+                                            click.echo(wrapper_sec_error.fill(test_case.get("call", {}).get("longrepr")[i]))
+                                    click.echo('\n')
                     else:
-                        print(wrapper_docker_image.fill(image['image']))
+                        click.echo(wrapper_docker_image.fill(image['image']))
                         errors = image.get("pytest_errors", {})
                         if errors:
-                            print(wrapper_sec_error.fill(errors))
+                            click.echo(wrapper_sec_error.fill(errors))
 
     @staticmethod
     def report_failed_image_creation(lint_status: dict, pkgs_status: dict, return_exit_code: int):
@@ -635,14 +636,14 @@ class LintManager:
         # Log failed images creation
         if EXIT_CODES["image"] & return_exit_code:
             sentence = " Image creation errors "
-            print(f"\n{Colors.Fg.red}{'#' * len(sentence)}{Colors.reset}")
-            print(f"{Colors.Fg.red}{sentence}{Colors.reset}")
-            print(f"{Colors.Fg.red}{'#' * len(sentence)}{Colors.reset}")
+            click.echo(f"\n{Colors.Fg.red}{'#' * len(sentence)}{Colors.reset}")
+            click.echo(f"{Colors.Fg.red}{sentence}{Colors.reset}")
+            click.echo(f"{Colors.Fg.red}{'#' * len(sentence)}{Colors.reset}")
             for fail_pack in lint_status["fail_packs_image"]:
-                print(wrapper_pack.fill(f"{Colors.Fg.cyan}{fail_pack}{Colors.reset}"))
+                click.echo(wrapper_pack.fill(f"{Colors.Fg.cyan}{fail_pack}{Colors.reset}"))
                 for image in pkgs_status[fail_pack]["images"]:
-                    print(wrapper_image.fill(image["image"]))
-                    print(wrapper_error.fill(image["image_errors"]))
+                    click.echo(wrapper_image.fill(image["image"]))
+                    click.echo(wrapper_error.fill(image["image_errors"]))
 
     @staticmethod
     def report_summary(pkg, lint_status: dict, all_packs: bool = False):
@@ -672,24 +673,24 @@ class LintManager:
                 warnings = warnings.union(lint_status[key])
         # Log unit-tests summary
         sentence = " Summary "
-        print(f"\n{Colors.Fg.cyan}{'#' * len(sentence)}")
-        print(f"{sentence}")
-        print(f"{'#' * len(sentence)}{Colors.reset}")
-        print(f"Packages: {len(pkg)}")
-        print(f"Packages PASS: {Colors.Fg.green}{len(pkg) - len(failed)}{Colors.reset}")
-        print(f"Packages FAIL: {Colors.Fg.red}{len(failed)}{Colors.reset}")
-        print(f"Packages WARNING (can either PASS or FAIL): {Colors.Fg.orange}{len(warnings)}{Colors.reset}\n")
+        click.echo(f"\n{Colors.Fg.cyan}{'#' * len(sentence)}")
+        click.echo(f"{sentence}")
+        click.echo(f"{'#' * len(sentence)}{Colors.reset}")
+        click.echo(f"Packages: {len(pkg)}")
+        click.echo(f"Packages PASS: {Colors.Fg.green}{len(pkg) - len(failed)}{Colors.reset}")
+        click.echo(f"Packages FAIL: {Colors.Fg.red}{len(failed)}{Colors.reset}")
+        click.echo(f"Packages WARNING (can either PASS or FAIL): {Colors.Fg.orange}{len(warnings)}{Colors.reset}\n")
 
         if not all_packs:
             if warnings:
-                print("Warning packages:")
+                click.echo("Warning packages:")
             for warning in warnings:
-                print(f"{Colors.Fg.orange}{wrapper_fail_pack.fill(warning)}{Colors.reset}")
+                click.echo(f"{Colors.Fg.orange}{wrapper_fail_pack.fill(warning)}{Colors.reset}")
 
         if failed:
-            print("Failed packages:")
+            click.echo("Failed packages:")
         for fail_pack in failed:
-            print(f"{Colors.Fg.red}{wrapper_fail_pack.fill(fail_pack)}{Colors.reset}")
+            click.echo(f"{Colors.Fg.red}{wrapper_fail_pack.fill(fail_pack)}{Colors.reset}")
 
     @staticmethod
     def _create_failed_packs_report(lint_status: dict, path: str):

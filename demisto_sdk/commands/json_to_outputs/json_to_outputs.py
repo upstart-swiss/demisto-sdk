@@ -76,7 +76,8 @@ import sys
 
 import dateparser
 import yaml
-from demisto_sdk.commands.common.tools import print_error, print_success
+from demisto_sdk.commands.common.tools import (print_error, print_info,
+                                               print_success)
 
 
 def input_multiline():
@@ -171,13 +172,13 @@ def parse_json(data, command_name, prefix, verbose=False, interactive=False):
     for key, value in flattened_data.items():
         description = ''
         if interactive:
-            print(f'Enter description for: [{key}]')
+            print_info(f'Enter description for: [{key}]')
             description = input_multiline()
 
         arg_json.append(jsonise(key, value, description))
 
     if verbose:
-        print(f'JSON before converting to YAML: {arg_json}')
+        print_info(f'JSON before converting to YAML: {arg_json}')
 
     yaml_output = yaml.safe_dump(
         {
@@ -211,7 +212,7 @@ def json_to_outputs(command, input, prefix, output=None, verbose=False, interact
             with open(input, 'r') as json_file:
                 input_json = json_file.read()
         else:
-            print("Enter the command's output in JSON format.\n As an example, If one of the command's output is `item_id`,\n enter {\"item_id\": 1234}")
+            print_info("Enter the command's output in JSON format.\n As an example, If one of the command's output is `item_id`,\n enter {\"item_id\": 1234}")
             input_json = input_multiline()
 
         yaml_output = parse_json(input_json, command, prefix, verbose, interactive)
@@ -223,7 +224,7 @@ def json_to_outputs(command, input, prefix, output=None, verbose=False, interact
                 print_success(f'Outputs file was saved to :\n{output}')
         else:
             print_success("YAML Outputs\n\n")
-            print(yaml_output)
+            print_info(yaml_output)
 
     except Exception as ex:
         if verbose:

@@ -3,8 +3,8 @@ from typing import List, Tuple
 
 from demisto_sdk.commands.common.legacy_git_tools import get_changed_files
 from demisto_sdk.commands.common.tools import (find_type, get_files_in_dir,
-                                               print_error, print_success,
-                                               print_warning)
+                                               print_error, print_info,
+                                               print_success, print_warning)
 from demisto_sdk.commands.format.format_constants import SCHEMAS_PATH
 from demisto_sdk.commands.format.update_classifier import (
     ClassifierJSONFormat, OldClassifierJSONFormat)
@@ -142,7 +142,7 @@ def format_manager(input: str = None,
     else:
         log_list.append(([f'Failed format file {input}.' + "No such file or directory"], print_error))
 
-    print('')  # Just adding a new line before summary
+    print_info('')  # Just adding a new line before summary
     for string, print_func in log_list:
         print_func('\n'.join(string))
 

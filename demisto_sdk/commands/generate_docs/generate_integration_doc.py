@@ -5,7 +5,8 @@ from typing import Any, Dict, List, Optional, Tuple
 from demisto_sdk.commands.common.constants import (
     CONTEXT_OUTPUT_README_TABLE_HEADER, DOCS_COMMAND_SECTION_REGEX)
 from demisto_sdk.commands.common.tools import (get_yaml, print_error,
-                                               print_success, print_warning)
+                                               print_info, print_success,
+                                               print_warning)
 from demisto_sdk.commands.generate_docs.common import (
     add_lines, build_example_dict, generate_numbered_section, generate_section,
     generate_table_section, save_output, string_escape_md)
@@ -102,7 +103,7 @@ def generate_integration_doc(
             with open(readme_path) as f:
                 doc_text = f.read()
             for specific_command in specific_commands:
-                print(f'Generating docs for command `{specific_command}`')
+                print_info(f'Generating docs for command `{specific_command}`')
                 command_section, command_errors = generate_commands_section(
                     yml_data, example_dict,
                     command_permissions_dict, command=specific_command
@@ -360,7 +361,7 @@ def get_command_examples(commands_file_path, specific_commands):
         with open(commands_file_path, 'r') as examples_file:
             command_examples = examples_file.read().splitlines()
     else:
-        print('failed to open command file')
+        print_info('failed to open command file')
         command_examples = commands_file_path.split('\n')
 
     # Filter from the examples only the commands specified by the user
@@ -374,7 +375,7 @@ def get_command_examples(commands_file_path, specific_commands):
 
     commands: list = list(filter(None, map(command_example_filter, commands)))
 
-    print('found the following commands:\n{}'.format('\n'.join(commands)))
+    print_info('found the following commands:\n{}'.format('\n'.join(commands)))
     return commands
 
 
@@ -403,13 +404,13 @@ def get_command_permissions(commands_permissions_file_path) -> list:
         with open(commands_permissions_file_path, 'r') as permissions_file:
             permissions = permissions_file.read().splitlines()
     else:
-        print('failed to open permissions file')
+        print_info('failed to open permissions file')
         permissions = commands_permissions_file_path.split('\n')
 
     permissions_map = map(command_permissions_filter, permissions)
     permissions_list: List = list(filter(None, permissions_map))
 
-    print('found the following commands permissions:\n{}'.format('\n '.join(permissions_list)))
+    print_info('found the following commands permissions:\n{}'.format('\n '.join(permissions_list)))
     return permissions_list
 
 

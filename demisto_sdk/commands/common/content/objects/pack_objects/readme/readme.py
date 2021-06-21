@@ -3,6 +3,7 @@ from typing import List, Optional, Union
 from demisto_sdk.commands.common.constants import FileType
 from demisto_sdk.commands.common.content.objects.abstract_objects import \
     TextObject
+from demisto_sdk.commands.common.tools import print_error
 from wcmatch.pathlib import Path
 
 
@@ -24,7 +25,7 @@ class Readme(TextObject):
                 with open(self._path, 'a+') as readme_file:
                     readme_file.write(contributor_data)
         except Exception as e:
-            print(e)
+            print_error(e)
 
     def dump(self, dest_dir: Optional[Union[Path, str]] = None) -> List[Path]:
         self.mention_contributors_in_readme()

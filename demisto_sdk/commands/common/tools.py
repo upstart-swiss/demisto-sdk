@@ -83,7 +83,7 @@ def get_yml_paths_in_dir(project_dir: str, error_msg: str = '') -> Tuple[list, s
     yml_files = glob.glob(os.path.join(project_dir, '*.yml'))
     if not yml_files:
         if error_msg:
-            print(error_msg)
+            print_info(error_msg)
         return [], ''
     return yml_files, yml_files[0]
 
@@ -896,7 +896,7 @@ def get_python_version(docker_image, log_verbose=None, no_prints=False):
                            "import sys;print('{}.{}'.format(sys.version_info[0], sys.version_info[1]))"],
                           universal_newlines=True, stderr=stderr_out).strip()
     if not no_prints:
-        print("Detected python version: [{}] for docker image: {}".format(py_ver, docker_image))
+        print_info("Detected python version: [{}] for docker image: {}".format(py_ver, docker_image))
 
     py_num = float(py_ver)
     if py_num < 2.7 or (3 < py_num < 3.4):  # pylint can only work on python 3.4 and up
@@ -1080,7 +1080,7 @@ def find_type(path: str = '', _dict=None, file_type: Optional[str] = None, ignor
                 if _id.startswith('indicator'):
                     return FileType.INDICATOR_FIELD
             else:
-                print(f'The file {path} could not be recognized, please update the "id" to be a string')
+                print_info(f'The file {path} could not be recognized, please update the "id" to be a string')
 
     return None
 

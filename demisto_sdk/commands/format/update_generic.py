@@ -14,7 +14,8 @@ from demisto_sdk.commands.common.tools import (find_type, get_dict_from_file,
                                                get_pack_metadata,
                                                get_remote_file,
                                                is_file_from_content_repo,
-                                               print_success, print_warning)
+                                               print_info, print_success,
+                                               print_warning)
 from demisto_sdk.commands.format.format_constants import (
     DEFAULT_VERSION, ERROR_RETURN_CODE, NEW_FILE_DEFAULT_5_5_0_FROMVERSION,
     OLD_FILE_DEFAULT_1_FROMVERSION, SKIP_RETURN_CODE, SUCCESS_RETURN_CODE,
@@ -104,7 +105,7 @@ class BaseUpdate:
             schema = yaml.safe_load(file_obj)
             extended_schema = self.recursive_extend_schema(schema, schema)
         if self.verbose:
-            print('Removing Unnecessary fields from file')
+            print_info('Removing Unnecessary fields from file')
         if isinstance(extended_schema, dict):
             self.recursive_remove_unnecessary_keys(extended_schema.get('mapping', {}), self.data)
 
@@ -170,8 +171,7 @@ class BaseUpdate:
                             data.get(field, {})
                         )
                 else:
-                    if self.verbose:
-                        print(f'Removing {field} field')
+                    print_info(f'Removing {field} field', logging=self.verbose)
                     data.pop(field, None)
             else:
                 mapping = schema.get(field, {}).get('mapping')

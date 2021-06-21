@@ -197,7 +197,7 @@ class Downloader:
             list_files = [[cco['name'], cco['type']] for cco in self.all_custom_content_objects
                           if cco.get('name')]
             print_info('\nThe following files are available to be downloaded from Demisto instance:\n')
-            print(tabulate(list_files, headers=['FILE NAME', 'FILE TYPE']))
+            print_info(tabulate(list_files, headers=['FILE NAME', 'FILE TYPE']))
             return True
         return False
 
