@@ -187,6 +187,34 @@ jobs:
 
               CI_COMMIT_BRANCH="master" python3 ./Tests/scripts/update_conf_json.py
               CI_COMMIT_BRANCH="master" ./Tests/scripts/validate.sh
+  test-lint:
+      docker:
+        - image: circleci/python:3.8.3-buster-node
+      steps:
+        - checkout
+        - setup_remote_docker
+        - attach_workspace:
+            at: ~/project
+        - run:
+            name: Test lint on python and ps files
+            when: always
+            command: |
+              . .tox/py37/bin/activate
+              cd ~/project
+              export SDK_LINT_FILES_CHANGED=$(git diff master... --name-only -- demisto_sdk/commands/lint)
+
+              if [[ -n "${SDK_LINT_FILES}" ]]; then
+                echo "lint files changed running lint"
+                cd content
+                source .hooks/bootstrap
+                # python file (CommonServerPython lint is runnit over python 3 and 2)
+                demisto-sdk lint -i ./Packs/Base/Scripts/CommonServerPython
+                
+                # ps file
+                demisto-sdk lint -i ./Packs/Base/Scripts/CommonServerPowerShell
+              else
+                echo "files under demisto_sdk/commands/lint did not changed."
+              fi
   create-content-artifacts:
       docker:
         - image: circleci/python:3.8.3-buster-node
@@ -235,6 +263,9 @@ workflows:
       - validate-files:
           <<: *tag_filter
           <<: *reqs_content_checkout
+      - test-lint:
+          <<: *tag_filter
+          <<: *reqs_content_checkout
       - create-content-artifacts:
           <<: *tag_filter
           <<: *reqs_content_checkout
@@ -246,3 +277,4 @@ workflows:
             - precommit-checks
             - validate-files
             - create-content-artifacts
+            - test-lint
