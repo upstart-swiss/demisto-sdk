@@ -505,6 +505,7 @@ def generate_coverage_report(html=False, xml=False, report=True, cov_dir='covera
     cov_file = os.path.join(cov_dir, '.coverage')
     cov = coverage.Coverage(data_file=cov_file)
     cov.combine(coverage_files())
+    
     if not os.path.exists(cov_file):
         logger.debug(f'skipping coverage report {cov_file} file not found.')
         return
