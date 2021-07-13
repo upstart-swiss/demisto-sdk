@@ -189,7 +189,7 @@ jobs:
               CI_COMMIT_BRANCH="master" ./Tests/scripts/validate.sh
   test-lint:
       docker:
-        - image: circleci/python:3.8.3-buster-node
+        - image: devdemisto/content-build:3.0.0.12681
       steps:
         - checkout
         - setup_remote_docker
@@ -199,14 +199,13 @@ jobs:
             name: Test lint on python and ps files
             when: always
             command: |
-              . .tox/py37/bin/activate
               cd ~/project
               export SDK_LINT_FILES_CHANGED=$(git diff master... --name-only -- demisto_sdk/commands/lint)
 
               if [[ -n "${SDK_LINT_FILES_CHANGED}" ]]; then
                 echo "lint files changed running lint"
+                pip install . >> /dev/null
                 cd content
-                source .hooks/bootstrap
                 # python file (CommonServerPython lint is runnit over python 3 and 2)
                 demisto-sdk lint -i ./Packs/Base/Scripts/CommonServerPython
                 
